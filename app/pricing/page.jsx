@@ -4,7 +4,7 @@ import {ArrowRight, CheckCircle2} from 'lucide-react';
 
 export const metadata={title:'Cleaning Prices | NVG Cleaning Services',description:'NVG Cleaning Services pricing for regular domestic cleaning, deep cleaning, Airbnb cleaning, pressure washing and add-ons across Leeds and Yorkshire.'};
 
-const domestic=[['Regular Domestic Cleaning','From £16.50/hour','Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.'],['Ironing Service','From £15/hour','Can be added to regular domestic cleaning or booked separately.']];
+const domestic=[['Regular Domestic Cleaning','£16.50/hour','Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.'],['Ironing Service','From £15/hour','Can be added to regular domestic cleaning or booked separately.']];
 const deep=[['Studio/1 Bed','From £120'],['2 Bedroom','From £160'],['3 Bedroom','From £220'],['4 Bedroom','From £280'],['5+ Bedroom','Custom Quote']];
 const airbnb=[['1 Bedroom Airbnb','From £55'],['2 Bedroom Airbnb','From £75'],['3 Bedroom Airbnb','From £95'],['4+ Bedroom Airbnb','Custom Quote']];
 const pressure=[['Driveway Cleaning','From £80'],['Patio Cleaning','From £70'],['Decking Cleaning','From £60'],['Commercial Exterior','Custom Quote']];
