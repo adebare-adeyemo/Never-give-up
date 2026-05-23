@@ -46,6 +46,7 @@ export async function POST(req) {
           <p><strong>Email:</strong> ${escapeHtml(body.email)}</p>
           <p><strong>Address:</strong> ${escapeHtml(body.address)}</p>
           <p><strong>Service:</strong> ${escapeHtml(body.service)}</p>
+          <p><strong>Hours requested:</strong> ${escapeHtml(body.hours)}</p>
           <p><strong>Preferred date:</strong> ${escapeHtml(body.date)}</p>
           <p><strong>Preferred time:</strong> ${escapeHtml(body.time)}</p>
           <p><strong>Property size:</strong> ${escapeHtml(body.propertySize)}</p>
@@ -60,6 +61,7 @@ Phone: ${body.phone}
 Email: ${body.email}
 Address: ${body.address || ''}
 Service: ${body.service || ''}
+Hours requested: ${body.hours || ''}
 Preferred date: ${body.date || ''}
 Preferred time: ${body.time || ''}
 Property size: ${body.propertySize || ''}

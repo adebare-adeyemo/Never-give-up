@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {Menu, X, ChevronRight, Facebook, Instagram} from 'lucide-react';
 
-const nav=[['Home','/'],['About Us','/about'],['Services','/services'],['Cleaning Results','/gallery'],['Testimonials','/#testimonials'],['Blog','/blog'],['Contact Us','/contact']];
+const nav=[['Home','/'],['About Us','/about'],['Services','/services'],['Pricing','/pricing'],['Cleaning Results','/gallery'],['Testimonials','/#testimonials'],['Blog','/blog'],['Contact Us','/contact']];
 
 export default function Header(){
  const [open,setOpen]=useState(false);

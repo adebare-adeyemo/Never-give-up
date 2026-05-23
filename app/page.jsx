@@ -11,16 +11,12 @@ const services=[
  {title:'End of Tenancy Cleaning',icon:ClipboardCheck,img:'end-of-tenancy-room-cleaning-before-after.webp',text:'Move-out cleaning for tenants, landlords and letting agents across Yorkshire.'},
  {title:'Commercial Cleaning',icon:Building2,img:'oven-cleaning-leeds-before-after.webp',text:'Office, restaurant and business cleaning packages tailored to your needs.'}
 ];
-
-const pricing=[
- ['Regular Domestic Cleaning','From £16.50/hour','Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.'],
- ['Deep Cleaning','From £120','Fixed starting prices based on property size and condition.'],
- ['Airbnb Cleaning','From £55','Guest-ready turnover cleaning with optional linen, towels and restocking.'],
- ['Pressure Washing','From £60','Driveway, patio, decking and exterior cleaning available.'],
- ['Office Cleaning','Custom Quote','Tailored commercial packages based on size, frequency and facilities.'],
- ['Restaurant Cleaning','Custom Quote','After-hours cleaning, front-of-house cleaning and kitchen deep cleaning.']
+const pricingPreview=[
+ ['Regular Domestic Cleaning','From £16.50/hour','Minimum booking: 2 hours'],
+ ['Deep Cleaning','From £120','Studio/1 bed starting price'],
+ ['Airbnb Cleaning','From £55','Guest-ready turnover cleaning'],
+ ['Pressure Washing','From £60','Decking, patio and driveway options']
 ];
-const addOns=[['Inside Fridge','£20'],['Inside Oven','£35'],['Interior Windows','£25'],['Ironing Service','From £15'],['Laundry Service','From £20']];
 
 const reviews=[
  ['Aisha M.','Amazing cleaning service. My house has never been this clean. Very professional and reliable.'],
@@ -55,15 +51,13 @@ export default function Home(){
  </div></section>
 
  <section className='section green-section'><div className='container'>
-  <Reveal className='text-center'><h2 className='text-4xl font-black text-white'>Why Choose <span className='text-nvg'>NVG Cleaning?</span></h2></Reveal>
-  <div className='mt-10 grid gap-5 rounded-[32px] border border-cyan-400/20 bg-white/5 p-5 md:grid-cols-4'>{[[ShieldCheck,'Trusted & Reliable','We turn up on time and get the job done.'],[Sparkles,'Attention to Detail','We clean every corner to a high standard.'],[Phone,'Flexible & Affordable','Services tailored to your needs and budget.'],[ThumbsUp,'Satisfaction Guaranteed','Happy customers are our priority.']].map(([Icon,title,text])=><Reveal key={title} className='p-5 text-center'><Icon className='mx-auto mb-4 text-nvg' size={40}/><h3 className='font-black text-white'>{title}</h3><p className='mt-2 text-sm text-white/70'>{text}</p></Reveal>)}</div>
+  <div className='mb-10 flex flex-wrap items-end justify-between gap-6'><Reveal><span className='text-sm font-black uppercase text-nvg'>Pricing</span><h2 className='mt-2 text-4xl font-black text-white'>Clear Starting Prices</h2><p className='mt-3 max-w-2xl text-white/70'>Prices may vary depending on property condition, size, accessibility and specific cleaning requirements.</p></Reveal><Link href='/pricing' className='btn btn-outline'>View Full Pricing <ArrowRight className='ml-2'/></Link></div>
+  <div className='grid gap-5 md:grid-cols-2 lg:grid-cols-4'>{pricingPreview.map(([name,price,note])=><Reveal key={name} className='rounded-[28px] border border-cyan-400/20 bg-white/5 p-6 shadow-card'><h3 className='text-xl font-black text-white'>{name}</h3><p className='mt-4 text-2xl font-black text-nvg'>{price}</p><p className='mt-3 text-sm leading-6 text-white/65'>{note}</p></Reveal>)}</div>
  </div></section>
 
-
- <section id='pricing' className='section green-section'><div className='container'>
-  <Reveal className='mb-10 flex flex-wrap items-end justify-between gap-6'><div><span className='text-sm font-black uppercase text-nvg'>Pricing</span><h2 className='mt-2 text-4xl font-black text-white'>Clear Starting Prices</h2><p className='mt-4 max-w-2xl text-white/70'>Prices are shown as “from” because every home and business is different. Final quotes may vary depending on property condition, size, accessibility and specific cleaning requirements.</p></div><Link href='/contact' className='btn btn-primary'>Get Free Quote</Link></Reveal>
-  <div className='grid gap-5 md:grid-cols-2 lg:grid-cols-3'>{pricing.map(([title,price,text])=><Reveal key={title} className='card p-7'><h3 className='text-xl font-black text-white'>{title}</h3><p className='mt-3 text-3xl font-black text-nvg'>{price}</p><p className='mt-4 leading-7 text-white/70'>{text}</p></Reveal>)}</div>
-  <Reveal className='mt-8 rounded-[28px] border border-cyan-400/20 bg-white/5 p-6'><h3 className='text-2xl font-black text-white'>Popular Add-ons</h3><div className='mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5'>{addOns.map(([name,price])=><div key={name} className='rounded-2xl border border-cyan-400/15 bg-black/20 p-4'><p className='font-bold text-white'>{name}</p><p className='mt-1 font-black text-nvg'>{price}</p></div>)}</div><p className='mt-5 text-sm text-white/60'>Free no-obligation quotes available for 5+ bedroom homes, 4+ bedroom Airbnb properties, office cleaning, restaurant cleaning and commercial exterior cleaning.</p></Reveal>
+ <section className='section green-section'><div className='container'>
+  <Reveal className='text-center'><h2 className='text-4xl font-black text-white'>Why Choose <span className='text-nvg'>NVG Cleaning?</span></h2></Reveal>
+  <div className='mt-10 grid gap-5 rounded-[32px] border border-cyan-400/20 bg-white/5 p-5 md:grid-cols-4'>{[[ShieldCheck,'Trusted & Reliable','We turn up on time and get the job done.'],[Sparkles,'Attention to Detail','We clean every corner to a high standard.'],[Phone,'Flexible & Affordable','Services tailored to your needs and budget.'],[ThumbsUp,'Satisfaction Guaranteed','Happy customers are our priority.']].map(([Icon,title,text])=><Reveal key={title} className='p-5 text-center'><Icon className='mx-auto mb-4 text-nvg' size={40}/><h3 className='font-black text-white'>{title}</h3><p className='mt-2 text-sm text-white/70'>{text}</p></Reveal>)}</div>
  </div></section>
 
  <section className='section blue-section'><div className='container'>
