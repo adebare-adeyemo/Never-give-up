@@ -1,0 +1,1 @@
+export default function sitemap(){const base='https://nvgcleaningservices.co.uk';return['','/services','/pricing','/gallery','/blog','/blog/deep-cleaning-leeds','/blog/airbnb-cleaning-yorkshire','/blog/end-of-tenancy-cleaning','/about','/contact'].map(url=>({url:base+url,lastModified:new Date(),changeFrequency:'weekly',priority:url===''?1:.8}))}
