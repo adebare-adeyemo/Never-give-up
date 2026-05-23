@@ -2,12 +2,23 @@
 
 import { useState } from 'react';
 
+const serviceOptions = [
+  'Regular Domestic Cleaning — from £16.50/hour, minimum 2 hours',
+  'Deep Cleaning — fixed price from £120',
+  'Airbnb Cleaning — from £55',
+  'End of Tenancy Cleaning — custom quote',
+  'Office Cleaning — custom quote',
+  'Restaurant Cleaning — custom quote',
+  'Pressure Washing — from £60',
+  'Ironing Service — from £15/hour',
+];
+
 const initialForm = {
   name: '',
   phone: '',
   email: '',
   address: '',
-  service: 'Regular Domestic Cleaning',
+  service: serviceOptions[0],
   date: '',
   time: '',
   propertySize: '',
@@ -65,13 +76,9 @@ export default function BookingForm() {
       <input name="address" value={formData.address} onChange={handleChange} placeholder="Property address" className="border rounded-xl p-3" />
 
       <select name="service" value={formData.service} onChange={handleChange} className="border rounded-xl p-3">
-        <option>Regular Domestic Cleaning</option>
-        <option>Deep Cleaning</option>
-        <option>Airbnb Cleaning</option>
-        <option>End of Tenancy Cleaning</option>
-        <option>Office Cleaning</option>
-        <option>Restaurant Cleaning</option>
-        <option>Pressure Washing</option>
+        {serviceOptions.map((option) => (
+          <option key={option}>{option}</option>
+        ))}
       </select>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -93,7 +100,7 @@ export default function BookingForm() {
       )}
 
       <p className="text-sm text-slate-500">
-        Booking requests are sent securely to booking@nvgcleaningservices.co.uk.
+        Booking requests are sent securely to <a href="mailto:booking@nvgcleaningservices.co.uk" className="font-bold text-nvg">booking@nvgcleaningservices.co.uk</a>.
       </p>
     </form>
   );
