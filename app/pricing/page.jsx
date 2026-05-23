@@ -8,7 +8,7 @@ const domestic=[['Regular Domestic Cleaning','£16.50/hour','Minimum booking: 2 
 const deep=[['Studio/1 Bed','From £120'],['2 Bedroom','From £160'],['3 Bedroom','From £220'],['4 Bedroom','From £280'],['5+ Bedroom','Custom Quote']];
 const airbnb=[['1 Bedroom Airbnb','From £55'],['2 Bedroom Airbnb','From £75'],['3 Bedroom Airbnb','From £95'],['4+ Bedroom Airbnb','Custom Quote']];
 const pressure=[['Driveway Cleaning','From £80'],['Patio Cleaning','From £70'],['Decking Cleaning','From £60'],['Commercial Exterior','Custom Quote']];
-const addons=[['Inside Fridge','£20'],['Inside Oven','£35'],['Interior Windows','£25'],['Laundry Service','From £20']];
+const addons=[['Inside Fridge','£20'],['Inside Oven','£35']];
 
 function PriceCard({title,children}){return <Reveal className='rounded-[28px] border border-cyan-400/20 bg-white/5 p-6 shadow-card backdrop-blur'><h2 className='text-2xl font-black text-white'>{title}</h2><div className='mt-5 space-y-3'>{children}</div></Reveal>}
 function Row({name,price,note}){return <div className='rounded-2xl border border-cyan-400/10 bg-[#061113]/65 p-4'><div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'><p className='font-black text-white'>{name}</p><p className='font-black text-nvg'>{price}</p></div>{note&&<p className='mt-2 text-sm leading-6 text-white/65'>{note}</p>}</div>}
