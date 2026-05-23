@@ -1,21 +1,30 @@
-# NVG Cleaning Services - Next.js Website
+# NVG Cleaning Services — Next.js Website
 
-This is a Next.js website for NVG Cleaning Services with pages for services, pricing, gallery, blog, contact/booking, SEO files, and a GoDaddy SMTP booking form.
+This version includes:
+- Premium dark green/black/blue redesign inspired by the reference website style
+- Logo loading screen
+- Slide-out mobile toolbar/menu
+- Hero section using the NVG team cleaning image
+- Service cards with animation-ready reveal styling
+- Before/after cleaning results gallery
+- Testimonials/Google Reviews styled section
+- Blog page with 3 SEO articles
+- Contact/booking form connected to Next.js API route
+- GoDaddy SMTP/Nodemailer setup
+- Sitemap, robots.txt and schema markup
 
-## Run locally
-
+## Install
 ```bash
 npm install
+```
+
+## Run locally
+```bash
 npm run dev
 ```
 
-## Booking form email setup
-
-The booking form sends enquiries through the Next.js API route:
-
-`/app/api/book/route.js`
-
-It uses Nodemailer and GoDaddy SMTP. Add these environment variables in Vercel:
+## GoDaddy SMTP Environment Variables
+Add these in Vercel Project Settings > Environment Variables:
 
 ```env
 SMTP_HOST=smtpout.secureserver.net
@@ -26,18 +35,13 @@ SMTP_FROM=booking@nvgcleaningservices.co.uk
 SMTP_TO=booking@nvgcleaningservices.co.uk
 ```
 
-If port 465 does not work, try:
-
+If port 465 fails, try:
 ```env
 SMTP_PORT=587
 ```
 
-Do not put the real password inside the code. Add it only inside Vercel Environment Variables.
+## Google Reviews
+The testimonial section is designed to match Google Reviews style. For live reviews, connect a Google Reviews widget/API after launch, such as Trustindex, Elfsight, or Google Places API.
 
-## Deploy on Vercel
-
-1. Upload/import the project to Vercel.
-2. Add the environment variables above.
-3. Deploy.
-4. Test the booking form.
-5. Connect the GoDaddy domain.
+## Google Analytics
+Replace `G-XXXXXXXXXX` in `app/layout.jsx` with the real Google Analytics ID.
