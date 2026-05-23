@@ -1,4 +1,4 @@
-use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 
@@ -62,7 +62,7 @@ export default function BookingForm() {
     }
   }
 
-  const inputClass = 'w-full rounded-2xl border border-cyan-400/20 bg-white px-4 py-4 text-base font-semibold text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15';
+  const inputClass = 'block w-full min-w-0 min-h-[58px] rounded-2xl border border-cyan-400/20 bg-white px-4 py-4 text-base font-semibold text-[#071316] placeholder:text-slate-500 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15';
 
   return (
     <form onSubmit={handleSubmit} className="card grid gap-4 p-5 sm:p-7">
