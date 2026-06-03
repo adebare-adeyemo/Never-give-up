@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 
 const serviceOptions = [
-  'Regular Domestic Cleaning — £16.50/hour',
+  'Regular Domestic Cleaning — £18.50/hour',
   'Ironing Service — from £15/hour',
   'Deep Cleaning — fixed quote from £120',
   'Airbnb Cleaning — from £55',
@@ -13,7 +13,30 @@ const serviceOptions = [
   'Pressure Washing — from £60',
 ];
 
-const hourOptions = ['2 hours', '3 hours', '4 hours', '6 hours', 'Other'];
+const deepCleaningSizes = [
+  'Studio/1 Bed — from £120',
+  '2 Bedroom — from £160',
+  '3 Bedroom — from £250',
+  '4 Bedroom — from £350',
+  '5+ Bedroom — from £500+',
+];
+
+const hourOptions = ['2 hrs', '3 hrs', '4 hrs', '6 hrs', 'Other'];
+
+const addOnOptions = [
+  'Inside Fridge — £20',
+  'Inside Oven — £35',
+  'Ironing Service — from £15/hour',
+  'Carpet cleaning',
+  'Heavy mould',
+  'Pet hair',
+  'Upholstery cleaning',
+  'Nicotine staining',
+  'External windows',
+  'Biohazard issues',
+  'Balconies',
+  'Heavily neglected kitchens / ovens',
+];
 
 const initialForm = {
   name: '',
@@ -21,11 +44,12 @@ const initialForm = {
   email: '',
   address: '',
   service: serviceOptions[0],
+  deepCleaningSize: '',
   hours: '',
-  customHours: '',
   date: '',
   time: '',
   propertySize: '',
+  addons: [],
   notes: '',
 };
 
@@ -34,23 +58,25 @@ export default function BookingForm() {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const showHours = useMemo(() => formData.service.includes('/hour'), [formData.service]);
-  const showCustomHours = showHours && formData.hours === 'Other';
+  const showDeepCleaningSizes = useMemo(() => formData.service.includes('Deep Cleaning'), [formData.service]);
+  const showOtherHours = formData.hours === 'Other';
 
   function handleChange(event) {
     const { name, value } = event.target;
-
     setFormData((current) => {
-      if (name === 'service' && !value.includes('/hour')) {
-        return { ...current, service: value, hours: '', customHours: '' };
-      }
-
-      if (name === 'hours' && value !== 'Other') {
-        return { ...current, hours: value, customHours: '' };
-      }
-
-      return { ...current, [name]: value };
+      const next = { ...current, [name]: value };
+      if (name === 'service' && !value.includes('Deep Cleaning')) next.deepCleaningSize = '';
+      if (name === 'hours' && value !== 'Other') next.customHours = '';
+      return next;
     });
+  }
+
+  function handleAddonChange(event) {
+    const { value, checked } = event.target;
+    setFormData((current) => ({
+      ...current,
+      addons: checked ? [...current.addons, value] : current.addons.filter((item) => item !== value),
+    }));
   }
 
   async function handleSubmit(event) {
@@ -59,15 +85,10 @@ export default function BookingForm() {
     setStatus({ type: '', message: '' });
 
     try {
-      const payload = {
-        ...formData,
-        hours: formData.hours === 'Other' ? formData.customHours : formData.hours,
-      };
-
       const response = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formData),
       });
 
       const result = await response.json();
@@ -82,60 +103,101 @@ export default function BookingForm() {
     }
   }
 
-  const inputClass = 'block w-full min-w-0 min-h-[58px] rounded-2xl border border-cyan-400/20 bg-white px-4 py-4 text-base font-semibold text-[#071316] placeholder:text-slate-500 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15';
-  const labelClass = 'mb-2 block text-sm font-black text-slate-900';
+  const inputClass = 'block w-full min-w-0 min-h-[58px] rounded-2xl border border-slate-300 bg-white px-4 py-4 text-base font-semibold text-[#0f172a] placeholder:text-slate-500 outline-none transition focus:border-cyan-600 focus:ring-4 focus:ring-cyan-500/15';
+  const labelClass = 'text-sm font-black text-[#0f172a]';
 
   return (
-    <form onSubmit={handleSubmit} className="card grid gap-4 p-5 sm:p-7">
+    <form onSubmit={handleSubmit} className="card grid gap-5 p-5 sm:p-7">
       <div className="grid gap-4 sm:grid-cols-2">
-        <input name="name" value={formData.name} onChange={handleChange} required placeholder="Full name" className={inputClass} />
-        <input name="phone" value={formData.phone} onChange={handleChange} required placeholder="Phone number" className={inputClass} />
+        <label className="grid gap-2">
+          <span className={labelClass}>Full name *</span>
+          <input name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your full name" className={inputClass} />
+        </label>
+        <label className="grid gap-2">
+          <span className={labelClass}>Phone number *</span>
+          <input name="phone" value={formData.phone} onChange={handleChange} required placeholder="Enter your phone number" className={inputClass} />
+        </label>
       </div>
 
-      <input name="email" value={formData.email} onChange={handleChange} type="email" required placeholder="Email address" className={inputClass} />
-
-      <div>
-        <label htmlFor="address" className={labelClass}>Property address *</label>
-        <input id="address" name="address" value={formData.address} onChange={handleChange} required placeholder="Enter the full cleaning address" className={inputClass} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-2">
+          <span className={labelClass}>Email address *</span>
+          <input name="email" value={formData.email} onChange={handleChange} type="email" required placeholder="Enter your email address" className={inputClass} />
+        </label>
+        <label className="grid gap-2">
+          <span className={labelClass}>Property address *</span>
+          <input name="address" value={formData.address} onChange={handleChange} required placeholder="Enter the full cleaning address" className={inputClass} />
+        </label>
       </div>
 
-      <div>
-        <label htmlFor="service" className={labelClass}>Cleaning type *</label>
-        <select id="service" name="service" value={formData.service} onChange={handleChange} required className={inputClass}>
-          {serviceOptions.map((option) => <option key={option}>{option}</option>)}
-        </select>
-      </div>
-
-      {showHours && (
-        <div>
-          <label htmlFor="hours" className={labelClass}>Number of hours *</label>
-          <select id="hours" name="hours" value={formData.hours} onChange={handleChange} required className={inputClass}>
-            <option value="">Select hours</option>
-            {hourOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-2">
+          <span className={labelClass}>Cleaning type *</span>
+          <select name="service" value={formData.service} onChange={handleChange} required className={inputClass}>
+            {serviceOptions.map((option) => <option key={option}>{option}</option>)}
           </select>
-        </div>
-      )}
+        </label>
 
-      {showCustomHours && (
-        <div>
-          <label htmlFor="customHours" className={labelClass}>Specify hours *</label>
-          <input id="customHours" name="customHours" value={formData.customHours} onChange={handleChange} required placeholder="Enter preferred hours" className={inputClass} />
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="date" className={labelClass}>Preferred cleaning date *</label>
-          <input id="date" name="date" value={formData.date} onChange={handleChange} type="date" required className={inputClass} />
-        </div>
-        <div>
-          <label htmlFor="time" className={labelClass}>Preferred cleaning time *</label>
-          <input id="time" name="time" value={formData.time} onChange={handleChange} type="time" required className={inputClass} />
-        </div>
+        {showDeepCleaningSizes && (
+          <label className="grid gap-2">
+            <span className={labelClass}>Deep cleaning property size *</span>
+            <select name="deepCleaningSize" value={formData.deepCleaningSize} onChange={handleChange} required className={inputClass}>
+              <option value="">Select property size</option>
+              {deepCleaningSizes.map((option) => <option key={option}>{option}</option>)}
+            </select>
+          </label>
+        )}
       </div>
 
-      <input name="propertySize" value={formData.propertySize} onChange={handleChange} placeholder="Property size e.g. 2 bedroom" className={inputClass} />
-      <textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Additional notes" rows="4" className={inputClass} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-2">
+          <span className={labelClass}>Preferred date *</span>
+          <input name="date" value={formData.date} onChange={handleChange} type="date" required className={inputClass} />
+        </label>
+        <label className="grid gap-2">
+          <span className={labelClass}>Preferred time *</span>
+          <input name="time" value={formData.time} onChange={handleChange} type="time" required className={inputClass} />
+        </label>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-2">
+          <span className={labelClass}>How many hours? *</span>
+          <select name="hours" value={formData.hours} onChange={handleChange} required className={inputClass}>
+            <option value="">Select hours</option>
+            {hourOptions.map((option) => <option key={option}>{option}</option>)}
+          </select>
+        </label>
+        <label className="grid gap-2">
+          <span className={labelClass}>Property size / type</span>
+          <input name="propertySize" value={formData.propertySize} onChange={handleChange} placeholder="e.g. 2 bedroom, office, restaurant" className={inputClass} />
+        </label>
+      </div>
+
+      {showOtherHours && (
+        <label className="grid gap-2">
+          <span className={labelClass}>Other hours</span>
+          <input name="customHours" value={formData.customHours || ''} onChange={handleChange} placeholder="Type the number of hours needed" className={inputClass} />
+        </label>
+      )}
+
+      <fieldset className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+        <legend className="px-2 text-sm font-black text-[#0f172a]">Add-on services (optional)</legend>
+        <p className="mb-4 text-sm font-medium text-slate-600">Select any extra services you may need.</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {addOnOptions.map((option) => (
+            <label key={option} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-bold text-[#0f172a]">
+              <input type="checkbox" value={option} checked={formData.addons.includes(option)} onChange={handleAddonChange} className="mt-1 h-4 w-4 accent-cyan-600" />
+              <span>{option}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <label className="grid gap-2">
+        <span className={labelClass}>Additional notes</span>
+        <textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Any special instructions or notes?" rows="4" className={inputClass} />
+      </label>
 
       <button className="btn btn-primary w-full justify-center disabled:opacity-60" type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Sending...' : 'Send Booking Request'}
