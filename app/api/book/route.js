@@ -13,14 +13,10 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const requiredFields = ['name', 'phone', 'email'];
-
+    const requiredFields = ['name', 'phone', 'email', 'address', 'date', 'time'];
     for (const field of requiredFields) {
       if (!body[field]) {
-        return Response.json(
-          { success: false, message: `Please provide your ${field}.` },
-          { status: 400 }
-        );
+        return Response.json({ success: false, message: `Please provide your ${field}.` }, { status: 400 });
       }
     }
 
@@ -41,7 +37,7 @@ export async function POST(req) {
       from: `NVG Website <${from}>`,
       to: recipient,
       replyTo: body.email,
-      subject: `New NVG Booking Request - ${body.service || 'Cleaning Service'}`,
+      subject: `New NVG Booking Request - ${escapeHtml(body.service || 'Cleaning Service')}`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
           <h2>New Booking Request</h2>
@@ -50,7 +46,9 @@ export async function POST(req) {
           <p><strong>Email:</strong> ${escapeHtml(body.email)}</p>
           <p><strong>Address:</strong> ${escapeHtml(body.address)}</p>
           <p><strong>Service:</strong> ${escapeHtml(body.service)}</p>
-          <p><strong>Hours requested:</strong> ${escapeHtml(body.hours)}</p>
+          <p><strong>Deep cleaning property size:</strong> ${escapeHtml(body.deepCleaningSize)}</p>
+          <p><strong>Hours requested:</strong> ${escapeHtml(body.hours === 'Other' ? body.customHours : body.hours)}</p>
+          <p><strong>Add-on services:</strong> ${escapeHtml(Array.isArray(body.addons) ? body.addons.join(', ') : body.addons)}</p>
           <p><strong>Preferred date:</strong> ${escapeHtml(body.date)}</p>
           <p><strong>Preferred time:</strong> ${escapeHtml(body.time)}</p>
           <p><strong>Property size:</strong> ${escapeHtml(body.propertySize)}</p>
@@ -65,7 +63,9 @@ Phone: ${body.phone}
 Email: ${body.email}
 Address: ${body.address || ''}
 Service: ${body.service || ''}
-Hours requested: ${body.hours || ''}
+Deep cleaning property size: ${body.deepCleaningSize || ''}
+Hours requested: ${body.hours === 'Other' ? body.customHours || '' : body.hours || ''}
+Add-on services: ${Array.isArray(body.addons) ? body.addons.join(', ') : body.addons || ''}
 Preferred date: ${body.date || ''}
 Preferred time: ${body.time || ''}
 Property size: ${body.propertySize || ''}
@@ -81,22 +81,15 @@ Additional notes: ${body.notes || ''}
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
           <h2>Thank you for your booking request</h2>
           <p>Hi ${escapeHtml(body.name)},</p>
-
           <p>Thank you for contacting NVG Cleaning Services. We have received your booking request and our team will get back to you shortly.</p>
-
           <h3>Your booking details</h3>
           <p><strong>Service:</strong> ${escapeHtml(body.service)}</p>
           <p><strong>Preferred date:</strong> ${escapeHtml(body.date)}</p>
           <p><strong>Preferred time:</strong> ${escapeHtml(body.time)}</p>
-          <p><strong>Hours requested:</strong> ${escapeHtml(body.hours)}</p>
-          <p><strong>Property size:</strong> ${escapeHtml(body.propertySize)}</p>
-
+          <p><strong>Hours requested:</strong> ${escapeHtml(body.hours === 'Other' ? body.customHours : body.hours)}</p>
+          <p><strong>Property size:</strong> ${escapeHtml(body.propertySize || body.deepCleaningSize)}</p>
           <p>If anything changes, you can reply to this email or call us on <strong>0333 034 7101</strong>.</p>
-
-          <p>Kind regards,<br/>
-          NVG Cleaning Services<br/>
-          0333 034 7101<br/>
-          booking@nvgcleaningservices.co.uk</p>
+          <p>Kind regards,<br/>NVG Cleaning Services<br/>0333 034 7101<br/>booking@nvgcleaningservices.co.uk</p>
         </div>
       `,
       text: `
@@ -108,8 +101,8 @@ Your booking details:
 Service: ${body.service || ''}
 Preferred date: ${body.date || ''}
 Preferred time: ${body.time || ''}
-Hours requested: ${body.hours || ''}
-Property size: ${body.propertySize || ''}
+Hours requested: ${body.hours === 'Other' ? body.customHours || '' : body.hours || ''}
+Property size: ${body.propertySize || body.deepCleaningSize || ''}
 
 If anything changes, you can reply to this email or call us on 0333 034 7101.
 
@@ -120,19 +113,11 @@ booking@nvgcleaningservices.co.uk
       `,
     });
 
-    return Response.json({
-      success: true,
-      message: 'Booking request sent.',
-    });
+    return Response.json({ success: true, message: 'Booking request sent.' });
   } catch (error) {
     console.error('Booking form email error:', error);
-
     return Response.json(
-      {
-        success: false,
-        message:
-          'Your request could not be sent. Please call or WhatsApp NVG Cleaning Services.',
-      },
+      { success: false, message: 'Your request could not be sent. Please call or WhatsApp NVG Cleaning Services.' },
       { status: 500 }
     );
   }
