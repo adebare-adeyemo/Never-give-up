@@ -12,7 +12,7 @@ const services=[
  {title:'Commercial Cleaning',icon:Building2,img:'oven-cleaning-leeds-before-after.webp',text:'Office, restaurant and business cleaning packages tailored to your needs.'}
 ];
 const pricingPreview=[
- ['Regular Domestic Cleaning','£16.50/hour','Minimum booking: 2 hours'],
+ ['Regular Domestic Cleaning','£18.50/hour','Minimum booking: 2 hours'],
  ['Deep Cleaning','From £120','Studio/1 bed starting price'],
  ['Airbnb Cleaning','From £55','Guest-ready turnover cleaning'],
  ['Pressure Washing','From £60','Decking, patio and driveway options']
