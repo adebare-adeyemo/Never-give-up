@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 
 const serviceOptions = [
-  'Regular Domestic Cleaning — £18.50/hour',
+  'Regular Domestic Cleaning — £20/hour',
   'Ironing Service — from £15/hour',
   'Deep Cleaning — fixed quote from £120',
   'Airbnb Cleaning — from £55',
