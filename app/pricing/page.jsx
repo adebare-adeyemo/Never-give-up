@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 const domestic = [
-  ['Regular Domestic Cleaning', '£18.50/hour', 'Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.'],
+  ['Regular Domestic Cleaning', '£20/hour', 'Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.'],
   ['Ironing Service', 'From £15/hour', 'Can be added to regular domestic cleaning or booked separately.'],
 ];
 
