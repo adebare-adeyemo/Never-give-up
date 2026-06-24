@@ -1,10 +1,7 @@
 
 import Image from "next/image";
 
-export const metadata = {
-  title: "NVG Cleaner Verification",
-  robots: { index: false, follow: false },
-};
+export const dynamic = "force-static";
 
 export default function CleanerProfile() {
   return (
