@@ -27,13 +27,7 @@ npm run dev
 Add these in Vercel Project Settings > Environment Variables:
 
 ```env
-SMTP_HOST=smtpout.secureserver.net
-SMTP_PORT=465
-SMTP_USER=booking@nvgcleaningservices.co.uk
-SMTP_PASS=your_godaddy_email_password
-SMTP_FROM=booking@nvgcleaningservices.co.uk
-SMTP_TO=booking@nvgcleaningservices.co.uk
-```
+
 
 If port 465 fails, try:
 ```env
