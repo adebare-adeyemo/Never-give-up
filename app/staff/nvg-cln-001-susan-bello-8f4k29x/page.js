@@ -32,8 +32,6 @@ export default function CleanerProfile() {
           <div className="grid md:grid-cols-2 gap-6 mt-10">
             <div className="border rounded-2xl p-6">
               <h3 className="font-bold text-2xl mb-4">Cleaner Information</h3>
-              <p><strong>Age:</strong> 47</p>
-              <p><strong>Location:</strong> Batley, West Yorkshire</p>
               <p><strong>Status:</strong> Active Cleaner</p>
             </div>
 
