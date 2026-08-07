@@ -12,7 +12,7 @@ export default function Header(){
   <header className='fixed top-0 left-0 right-0 z-50 border-b border-cyan-400/20 bg-[#061113]/90 backdrop-blur-xl'>
    <div className='mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8'>
     <Link href='/' className='flex items-center gap-3'>
-     <Image src='/assets/nvg-logo.jpeg' alt='NVG Cleaning Services logo' width={58} height={58} className='h-14 w-14 rounded-2xl object-cover shadow-glow'/>
+     <Image src='/assets/nvg-logo.JPG' alt='NVG Cleaning Services logo' width={58} height={58} className='h-14 w-14 rounded-2xl object-cover shadow-glow'/>
      <div className='leading-tight'><p className='text-xl font-black text-white'>NVG Cleaning</p><p className='text-lg font-black tracking-wide text-nvg'>Services</p></div>
     </Link>
     <div className='flex items-center gap-3'>
