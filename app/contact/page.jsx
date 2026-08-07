@@ -1,39 +1,75 @@
+import { Phone, MapPin } from 'lucide-react';
 import BookingForm from '@/components/BookingForm';
+import { WhatsAppIcon } from '@/components/SocialIcons';
+import { SITE } from '@/lib/site';
 
 export const metadata = {
   title: 'Book Cleaning Service',
-  description: 'Book NVG Cleaning Services or request a free cleaning quote across Leeds and Yorkshire.',
+  description:
+    'Book NVG Cleaning Services or request a free cleaning quote across Leeds and Yorkshire.',
+  alternates: { canonical: '/contact' },
 };
 
 export default function Contact() {
   return (
-    <main className="section">
-      <div className="container">
-        <div className="mx-auto mb-10 max-w-3xl text-center">
-          <h1 className="text-4xl font-extrabold">Book a Cleaning Service</h1>
-          <p className="mt-4 text-slate-600">Fill the form below and we will reply from <a className="font-bold text-cyan-700 underline" href="mailto:booking@nvgcleaningservices.co.uk">booking@nvgcleaningservices.co.uk</a>.</p>
-        </div>
+    <main className="section bg-white">
+      <div className="mx-auto max-w-[1180px] px-5">
+        <header className="mx-auto mb-12 max-w-3xl text-center">
+          <span className="eyebrow">Contact</span>
+          <h1 className="mt-5 text-3xl font-extrabold text-ink sm:text-4xl">
+            Book a Cleaning Service
+          </h1>
+          <p className="mt-4 text-lg leading-8 text-ink-muted">
+            Fill in the form below and we will reply from{' '}
+            <a className="font-semibold text-nvg-700 underline" href={`mailto:${SITE.email}`}>
+              {SITE.email}
+            </a>
+            .
+          </p>
+        </header>
 
         <div className="mx-auto max-w-5xl">
           <BookingForm />
         </div>
 
-        <div className="mx-auto mt-8 grid max-w-5xl gap-5 md:grid-cols-3">
-          <div className="card p-6">
-            <h2 className="font-extrabold text-xl">Message on WhatsApp</h2>
-            <p className="mt-2 text-slate-600">Quick response and easy booking support.</p>
-            <a className="btn btn-primary mt-5" href="https://wa.me/443330347101">Chat on WhatsApp</a>
-          </div>
-          <div className="card p-6">
-            <h2 className="font-extrabold text-xl">Call Us Now</h2>
-            <p className="mt-2 text-slate-600">Speak directly with our team.</p>
-            <a className="btn btn-outline mt-5" href="tel:03330347101">0333 034 7101</a>
-          </div>
-          <div className="card p-6">
-            <h2 className="font-extrabold text-xl">Areas We Cover</h2>
-            <p className="mt-2 text-slate-600">Leeds, York, Bradford, Wakefield, Harrogate and nearby Yorkshire areas.</p>
-          </div>
-        </div>
+        <ul className="mx-auto mt-8 grid max-w-5xl gap-6 md:grid-cols-3">
+          <li>
+            <div className="card h-full p-6">
+              <WhatsAppIcon size={28} className="text-nvg-700" />
+              <h2 className="mt-4 text-lg font-extrabold text-ink">Message on WhatsApp</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">
+                Quick response and easy booking support.
+              </p>
+              <a
+                className="btn btn-primary mt-5"
+                href={SITE.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Chat on WhatsApp
+              </a>
+            </div>
+          </li>
+          <li>
+            <div className="card h-full p-6">
+              <Phone size={28} className="text-nvg-700" aria-hidden="true" />
+              <h2 className="mt-4 text-lg font-extrabold text-ink">Call Us</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">Speak directly with our team.</p>
+              <a className="btn btn-outline mt-5" href={SITE.phoneHref}>
+                {SITE.phoneDisplay}
+              </a>
+            </div>
+          </li>
+          <li>
+            <div className="card h-full p-6">
+              <MapPin size={28} className="text-nvg-700" aria-hidden="true" />
+              <h2 className="mt-4 text-lg font-extrabold text-ink">Areas We Cover</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">
+                {SITE.areas.join(', ')} and nearby Yorkshire areas.
+              </p>
+            </div>
+          </li>
+        </ul>
       </div>
     </main>
   );

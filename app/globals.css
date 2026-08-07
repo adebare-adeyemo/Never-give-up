@@ -1,70 +1,112 @@
-@tailwind base;@tailwind components;@tailwind utilities;
-:root{scroll-behavior:smooth} body{background:#f8fafc;color:#0f172a;overflow-x:hidden}.container{max-width:1180px;margin:0 auto;padding:0 20px}.section{padding:92px 0}.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:15px 24px;font-weight:900}.btn-primary{background:linear-gradient(135deg,#14b8a6,#0ea5e9);color:#ffffff;box-shadow:0 14px 32px rgba(20,184,166,.22)}.btn-outline{border:1px solid #dbe7e8;color:#0f172a;background:rgba(255,255,255,.92);box-shadow:0 12px 28px rgba(15,23,42,.08)}.glass{background:rgba(255,255,255,.88);border:1px solid #e2e8f0;box-shadow:0 24px 70px rgba(15,23,42,.1)}.card{background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 18px 45px rgba(15,23,42,.08)}.light-card{background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 16px 45px rgba(15,23,42,.08)}.hero-bg{background:radial-gradient(circle at 76% 24%,rgba(20,184,166,.12),transparent 26%),radial-gradient(circle at 16% 8%,rgba(14,165,233,.1),transparent 24%),linear-gradient(135deg,#ffffff 0%,#f8fafc 46%,#eef8f7 100%)}.blue-section{background:radial-gradient(circle at 10% 0%,rgba(20,184,166,.1),transparent 28%),linear-gradient(135deg,#ffffff 0%,#f8fafc 52%,#edf7f6 100%)}.green-section{background:radial-gradient(circle at 82% 0%,rgba(20,184,166,.12),transparent 30%),linear-gradient(135deg,#f8fafc 0%,#ffffff 50%,#effaf8 100%)}.reveal{animation:rise .7s ease both}@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}.shadow-glow{box-shadow:0 0 0 1px rgba(20,184,166,.2),0 12px 30px rgba(20,184,166,.16)}.shadow-card{box-shadow:0 24px 60px rgba(15,23,42,.12)}
-/* Wealth Achievers-style light corporate background system using NVG teal/blue accents. Layout remains unchanged. */
-header{background:rgba(255,255,255,.94)!important;border-bottom:1px solid #e2e8f0!important;box-shadow:0 8px 26px rgba(15,23,42,.06)}header p:first-child{color:#0f172a!important}header button{background:#f8fafc!important;color:#0f172a!important;border-color:#d7e4e5!important}.hero-bg>.absolute.inset-0.bg-gradient-to-r{background:linear-gradient(90deg,rgba(2,6,23,.72) 0%,rgba(2,6,23,.38) 42%,rgba(248,250,252,.92) 76%,rgba(255,255,255,.96) 100%)!important}.hero-bg h1,.hero-bg h2,.hero-bg p,.hero-bg span{color:#ffffff}.hero-bg h1 .text-nvg,.hero-bg .text-nvg{color:#14b8a6!important}.hero-bg .glass h2,.hero-bg .glass p{color:#0f172a!important}.blue-section .text-white,.green-section .text-white,.blue-section h2,.green-section h2,.blue-section h3,.green-section h3{color:#0f172a!important}.blue-section .text-white\/70,.green-section .text-white\/70,.blue-section .text-white\/75,.green-section .text-white\/75,.blue-section .text-white\/65,.green-section .text-white\/65,.blue-section .text-white\/60,.green-section .text-white\/60,.blue-section .text-white\/55,.green-section .text-white\/55,.blue-section p,.green-section p{color:#475569!important}.blue-section .text-nvg,.green-section .text-nvg,.text-nvg{color:#14b8a6!important}.blue-section .bg-white\/5,.green-section .bg-white\/5{background:#ffffff!important;border:1px solid #e2e8f0!important;box-shadow:0 18px 45px rgba(15,23,42,.08)!important}.blue-section .bg-slate-950{background:#ffffff!important}.blue-section .from-black{--tw-gradient-from:rgba(15,23,42,.82)!important;--tw-gradient-to:rgba(15,23,42,0)!important;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-via),var(--tw-gradient-to)!important}.blue-section .via-black\/60{--tw-gradient-via:rgba(15,23,42,.42)!important}.blue-section .group h3,.blue-section .group p{color:#ffffff!important}.blue-section .group .text-nvg{color:#14f0cf!important}.card .text-white,.card h3,.card p.font-black{color:#0f172a!important}.card .text-white\/82,.card p.leading-7{color:#334155!important}.card .text-white\/70,.card .text-white\/55{color:#64748b!important}.card .bg-white\/10{background:#eefaf8!important;color:#0f766e!important}.text-gold{color:#f59e0b!important}form.card{background:#ffffff!important;border-color:#e2e8f0!important}form.card input,form.card select,form.card textarea{background:#ffffff!important;color:#0f172a!important;border-color:#cbd5e1!important}form.card input::placeholder,form.card textarea::placeholder{color:#64748b!important}.bg-\[\#061113\]\/90{background:rgba(255,255,255,.94)!important;color:#0f172a!important;border-color:#e2e8f0!important}.rounded-\[28px\].bg-\[\#061113\]\/90 p{color:#0f172a!important}.rounded-\[28px\].bg-\[\#061113\]\/90 .text-white,.rounded-\[28px\].bg-\[\#061113\]\/90 p.text-white{color:#0f172a!important}.border-cyan-400\/20{border-color:rgba(20,184,166,.22)!important}.bg-cyan-500\/20,.bg-cyan-950\/60{background:rgba(20,184,166,.12)!important}.btn-outline:hover,.btn-primary:hover{transform:translateY(-1px)}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Final readability-only fixes: keep layout unchanged, improve hero image clarity and text contrast. */
-.hero-bg > .absolute.inset-0.opacity-100 img,
-.hero-bg img[alt='NVG Cleaning team professionally cleaning a kitchen']{
-  filter: brightness(0.82) contrast(1.12) saturate(1.08) !important;
-}
-.hero-bg > .absolute.inset-0.bg-gradient-to-r{
-  background: linear-gradient(90deg, rgba(2,6,23,.76) 0%, rgba(2,6,23,.54) 45%, rgba(2,6,23,.34) 100%) !important;
-}
-.hero-bg h1,
-.hero-bg p,
-.hero-bg span,
-.hero-bg .text-white,
-.hero-bg .text-white\/80,
-.hero-bg .text-white\/85{
-  color:#ffffff !important;
-  text-shadow:0 3px 18px rgba(2,6,23,.55) !important;
-}
-.hero-bg .btn-outline{
-  color:#0f172a !important;
-  text-shadow:none !important;
-}
-.hero-bg .btn-primary{
-  color:#ffffff !important;
-  text-shadow:none !important;
-}
+/*
+ * Single source of truth for the visual system.
+ *
+ * Components declare the theme they render in, so nothing here overrides
+ * utility classes after the fact. Colour choices are constrained by
+ * tailwind.config.js, where the brand ramp documents which shades are safe
+ * for text (>= WCAG AA 4.5:1) and which are decorative only.
+ */
 
-/* Make pricing/cards text clear on the light Wealth-style background. */
-.green-section .rounded-\[28px\].bg-white\/5,
-.blue-section .rounded-\[28px\].bg-white\/5,
-.green-section .bg-white\/5,
-.blue-section .bg-white\/5{
-  background:#ffffff !important;
-  color:#0f172a !important;
-  border:1px solid #dbeafe !important;
-  box-shadow:0 18px 45px rgba(15,23,42,.08) !important;
-}
-.green-section .bg-white\/5 h3,
-.green-section .bg-white\/5 p,
-.green-section .bg-white\/5 .text-white,
-.green-section .bg-white\/5 .text-white\/70,
-.green-section .bg-white\/5 .text-white\/65,
-.green-section .bg-white\/5 .text-white\/60,
-.blue-section .bg-white\/5 h3,
-.blue-section .bg-white\/5 p,
-.blue-section .bg-white\/5 .text-white,
-.blue-section .bg-white\/5 .text-white\/70,
-.blue-section .bg-white\/5 .text-white\/65,
-.blue-section .bg-white\/5 .text-white\/60{
-  color:#0f172a !important;
-  text-shadow:none !important;
-}
-.green-section .bg-white\/5 .text-nvg,
-.blue-section .bg-white\/5 .text-nvg{
-  color:#0f766e !important;
+@layer base {
+  :root {
+    /* Height of the fixed header. Used for body offset and anchor scrolling so
+       no page has to hand-roll its own top padding. */
+    --header-h: 80px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Keeps in-page anchors (#testimonials) clear of the fixed header. */
+    scroll-padding-top: calc(var(--header-h) + 16px);
+  }
+
+  body {
+    @apply bg-white text-ink antialiased;
+    /* Offsets the fixed header once, globally. */
+    padding-top: var(--header-h);
+    overflow-x: hidden;
+  }
+
+  /* Visible keyboard focus on every interactive element. */
+  :focus-visible {
+    @apply rounded-lg outline-none ring-4 ring-nvg-600/40 ring-offset-2 ring-offset-white;
+  }
+
+  ::selection {
+    @apply bg-nvg-200 text-nvg-900;
+  }
 }
 
-/* Gallery labels must remain readable over photos. */
-.blue-section .absolute.left-4.top-4,
-.blue-section .absolute.right-4.top-4,
-.green-section .absolute.left-4.top-4,
-.green-section .absolute.right-4.top-4,
-span[class*='top-4']{
-  color:#ffffff !important;
-  text-shadow:0 2px 10px rgba(0,0,0,.55) !important;
+@layer components {
+  .section {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-base font-bold transition;
+  }
+
+  /* White on nvg-700 = 5.47:1 — passes AA. */
+  .btn-primary {
+    @apply bg-nvg-700 text-white shadow-glow hover:bg-nvg-800 active:translate-y-px;
+  }
+
+  .btn-outline {
+    @apply border border-slate-300 bg-white text-ink shadow-card hover:border-nvg-700 hover:text-nvg-700 active:translate-y-px;
+  }
+
+  .btn-ghost {
+    @apply border border-white/70 bg-white/10 text-white backdrop-blur hover:bg-white/20;
+  }
+
+  .card {
+    @apply rounded-4xl border border-slate-200 bg-white text-ink shadow-card;
+  }
+
+  .eyebrow {
+    @apply inline-flex rounded-full bg-nvg-50 px-4 py-2 text-sm font-bold tracking-wide text-nvg-700;
+  }
+
+  /* Alternating page surfaces — subtle tint, no heavy gradients. */
+  .surface-soft {
+    @apply bg-slate-50;
+  }
+
+  .surface-tint {
+    background:
+      radial-gradient(circle at 84% 0%, rgba(20, 184, 166, 0.09), transparent 34%),
+      linear-gradient(180deg, #ffffff 0%, #f5faf9 100%);
+  }
+
+  .hero-surface {
+    @apply bg-navy;
+  }
+
+  /* Field styling shared by every form control. */
+  .field {
+    @apply block min-h-[56px] w-full min-w-0 rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-base font-medium text-ink outline-none transition placeholder:text-ink-subtle focus:border-nvg-700 focus:ring-4 focus:ring-nvg-600/20;
+  }
+
+  .field-label {
+    @apply text-sm font-bold text-ink;
+  }
+}
+
+/* Respect the OS "reduce motion" setting — WCAG 2.1 vestibular safety. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

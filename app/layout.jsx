@@ -1,10 +1,60 @@
 import './globals.css';
+import { Poppins } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import LogoLoader from '@/components/LogoLoader';
-import {GoogleAnalytics} from '@next/third-parties/google';
-import { Poppins } from 'next/font/google';
+import { SITE } from '@/lib/site';
 
-const poppins=Poppins({subsets:['latin'],weight:['400','500','600','700','800','900'],display:'swap'});
-export const metadata={metadataBase:new URL('https://nvgcleaningservices.co.uk'),title:{default:'NVG Cleaning Services | Professional Cleaning Services in Leeds',template:'%s | NVG Cleaning Services'},description:'Professional domestic, deep, Airbnb, end of tenancy, commercial and pressure washing cleaning services across Leeds, Bradford, York, Wakefield, Harrogate and Yorkshire.',openGraph:{title:'NVG Cleaning Services',description:'Professional Cleaning Services You Can Trust',url:'https://nvgcleaningservices.co.uk',siteName:'NVG Cleaning Services',images:['/assets/nvg-team-cleaning-kitchen.webp'],locale:'en_GB',type:'website'}};
-export default function RootLayout({children}){return <html lang='en-GB'><body className={poppins.className}><LogoLoader/><Header/>{children}<Footer/><GoogleAnalytics gaId='G-XXXXXXXXXX'/></body></html>}
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-poppins',
+});
+
+export const metadata = {
+  metadataBase: new URL(SITE.url),
+  title: {
+    default: `${SITE.name} | Professional Cleaning Services in Leeds`,
+    template: `%s | ${SITE.name}`,
+  },
+  description:
+    'Professional domestic, deep, Airbnb, end of tenancy, commercial and pressure washing cleaning services across Leeds, Bradford, York, Wakefield, Harrogate and Yorkshire.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: SITE.name,
+    description: 'Professional Cleaning Services You Can Trust',
+    url: SITE.url,
+    siteName: SITE.name,
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: { card: 'summary_large_image', title: SITE.name },
+  robots: { index: true, follow: true },
+};
+
+export const viewport = {
+  themeColor: '#0f766e',
+  width: 'device-width',
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en-GB" className={poppins.variable}>
+      <body className="font-sans">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-nvg-700 focus:px-5 focus:py-3 focus:font-bold focus:text-white"
+        >
+          Skip to main content
+        </a>
+        <Header />
+        <div id="main">{children}</div>
+        <Footer />
+        {/* Only load analytics when a real measurement ID is configured. */}
+        {SITE.gaId ? <GoogleAnalytics gaId={SITE.gaId} /> : null}
+      </body>
+    </html>
+  );
+}
