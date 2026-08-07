@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Phone, Mail, ShieldCheck } from 'lucide-react';
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/SocialIcons';
+import CookieSettingsButton from '@/components/CookieSettingsButton';
 import { SITE } from '@/lib/site';
 
 const SERVICES = [
@@ -202,6 +203,12 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              {/* Only meaningful when analytics is configured and can be consented to. */}
+              {SITE.gaId ? (
+                <li>
+                  <CookieSettingsButton className="text-sm text-slate-400 transition hover:text-nvg-300" />
+                </li>
+              ) : null}
             </ul>
           </nav>
         </div>

@@ -1,6 +1,6 @@
 import './globals.css';
 import { Poppins } from 'next/font/google';
-import { GoogleAnalytics } from '@next/third-parties/google';
+import Analytics from '@/components/Analytics';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { SITE } from '@/lib/site';
@@ -52,8 +52,11 @@ export default function RootLayout({ children }) {
         <Header />
         <div id="main">{children}</div>
         <Footer />
-        {/* Only load analytics when a real measurement ID is configured. */}
-        {SITE.gaId ? <GoogleAnalytics gaId={SITE.gaId} /> : null}
+        {/*
+          Only mounted when a real measurement ID is configured. Analytics
+          itself stays behind an explicit opt-in — see components/Analytics.
+        */}
+        {SITE.gaId ? <Analytics gaId={SITE.gaId} /> : null}
       </body>
     </html>
   );

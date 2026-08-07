@@ -238,11 +238,15 @@ export async function POST(req) {
         ${inner}
       </div>`;
 
-    // Internal notification.
+    // The internal notification is the one that must not be lost, so it is sent
+    // first and its failure fails the request.
     await transporter.sendMail({
-      from: `${SITE.name} Website <${from}>`,
+      from: { name: `${SITE.name} Website`, address: from },
       to: recipient,
-      replyTo: `${data.name} <${data.email}>`,
+      // Passed structured rather than interpolated so nodemailer quotes the
+      // display name itself — a name containing < > " ; or , cannot then
+      // reshape the header.
+      replyTo: { name: data.name, address: data.email },
       subject: `New booking request — ${data.service || 'Cleaning Service'}`,
       html: wrap(
         'New Booking Request',
@@ -251,54 +255,57 @@ export async function POST(req) {
       text: `New Booking Request\n\n${textRows}\n`,
     });
 
-    // Customer acknowledgement.
-    const ackRows = summary
-      .filter(([label]) =>
-        [
-          'Service',
-          'Preferred date',
-          'Preferred time',
-          'Hours requested',
-          'Property size',
-        ].includes(label)
-      )
+    // Both size fields are included: deep cleans record the tier in
+    // "Deep cleaning property size" and leave the free-text field empty.
+    const ACK_LABELS = [
+      'Service',
+      'Deep cleaning property size',
+      'Property size',
+      'Hours requested',
+      'Preferred date',
+      'Preferred time',
+    ];
+    const ackFields = summary.filter(([label]) => ACK_LABELS.includes(label));
+
+    const ackRows = ackFields
       .map(
         ([label, value]) =>
           `<p style="margin:4px 0;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`
       )
       .join('');
 
-    await transporter.sendMail({
-      from: `${SITE.name} <${from}>`,
-      to: data.email,
-      subject: `Thank you for your booking request — ${SITE.name}`,
-      html: wrap(
-        'Thank you for your booking request',
-        `<p>Hi ${escapeHtml(data.name)},</p>
+    const ackText = ackFields.map(([label, value]) => `${label}: ${value}`).join('\n');
+
+    /*
+     * Best-effort courtesy email. The booking has already reached the business
+     * at this point, so a failure here must not fail the request — returning an
+     * error would prompt the customer to resubmit and send staff a duplicate
+     * notification. The failure is logged instead.
+     */
+    try {
+      await transporter.sendMail({
+        from: { name: SITE.name, address: from },
+        to: data.email,
+        subject: `Thank you for your booking request — ${SITE.name}`,
+        html: wrap(
+          'Thank you for your booking request',
+          `<p>Hi ${escapeHtml(data.name)},</p>
          <p>Thank you for contacting ${escapeHtml(SITE.name)}. We have received your request and will get back to you shortly.</p>
          <h3 style="margin:20px 0 8px;">Your booking details</h3>
          ${ackRows}
          <p style="margin-top:20px;">If anything changes, reply to this email or call us on <strong>${SITE.phoneDisplay}</strong>.</p>
          <p>Kind regards,<br/>${escapeHtml(SITE.name)}<br/>${SITE.phoneDisplay}<br/>${SITE.email}</p>`
-      ),
-      text:
-        `Hi ${data.name},\n\n` +
-        `Thank you for contacting ${SITE.name}. We have received your request and will get back to you shortly.\n\n` +
-        `Your booking details:\n${summary
-          .filter(([label]) =>
-            [
-              'Service',
-              'Preferred date',
-              'Preferred time',
-              'Hours requested',
-              'Property size',
-            ].includes(label)
-          )
-          .map(([label, value]) => `${label}: ${value}`)
-          .join('\n')}\n\n` +
-        `If anything changes, reply to this email or call us on ${SITE.phoneDisplay}.\n\n` +
-        `Kind regards,\n${SITE.name}\n${SITE.phoneDisplay}\n${SITE.email}\n`,
-    });
+        ),
+        text:
+          `Hi ${data.name},\n\n` +
+          `Thank you for contacting ${SITE.name}. We have received your request and will get back to you shortly.\n\n` +
+          `Your booking details:\n${ackText}\n\n` +
+          `If anything changes, reply to this email or call us on ${SITE.phoneDisplay}.\n\n` +
+          `Kind regards,\n${SITE.name}\n${SITE.phoneDisplay}\n${SITE.email}\n`,
+      });
+    } catch (ackError) {
+      console.error('Booking acknowledgement email failed (booking was received):', ackError);
+    }
 
     return Response.json({ success: true, message: 'Booking request sent.' });
   } catch (error) {

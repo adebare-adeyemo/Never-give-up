@@ -70,8 +70,16 @@ export default function BookingForm() {
   );
   const showOtherHours = formData.hours === 'Other';
 
-  // Stop people picking a date in the past.
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  /*
+   * Stop people picking a date in the past. Built from local date components,
+   * not toISOString() — that returns the UTC day, so during BST anyone loading
+   * the form between midnight and 1am would be offered "yesterday".
+   */
+  const today = useMemo(() => {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  }, []);
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;

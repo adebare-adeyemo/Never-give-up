@@ -288,10 +288,16 @@ export default function Privacy() {
 
       <h2 id="cookies">10. Cookies and analytics</h2>
       <p>
-        This website uses only the cookies strictly necessary to serve the site, unless you consent
-        to more. If analytics is enabled, we use Google Analytics to understand which pages are
-        useful; it sets cookies that collect anonymous usage statistics. Analytics is only loaded
-        when a measurement ID is configured and you have consented.
+        This website sets only the cookies strictly necessary to serve the site unless you tell us
+        otherwise. If analytics is enabled, we use Google Analytics to understand which pages are
+        useful, which sets cookies that collect usage statistics.
+      </p>
+      <p>
+        We ask before we do this. The analytics script is <strong>not loaded at all</strong> and no
+        analytics cookie is set until you press &ldquo;Accept&rdquo; on the cookie banner. If you
+        decline, nothing is loaded. You can change or withdraw your choice at any time using the{' '}
+        <strong>Cookie settings</strong> link in the footer — withdrawing consent also deletes any
+        analytics cookies already stored on your device.
       </p>
       <p>
         You can block or delete cookies in your browser settings at any time. Doing so will not stop
