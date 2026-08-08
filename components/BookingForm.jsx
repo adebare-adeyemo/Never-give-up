@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
+import { calculateDeposit } from '@/lib/pricing';
 
 const SERVICE_OPTIONS = [
   'Regular Domestic Cleaning — £20/hour',
@@ -55,6 +56,7 @@ const INITIAL_FORM = {
   addons: [],
   notes: '',
   consent: false,
+  startWithinCancellationPeriod: false,
   company: '', // honeypot — must stay empty
 };
 
@@ -69,6 +71,19 @@ export default function BookingForm() {
     [formData.service]
   );
   const showOtherHours = formData.hours === 'Other';
+
+  /*
+   * Display only. The server recalculates this from the same module and is the
+   * authority on what gets charged — the browser never sends an amount.
+   */
+  const deposit = useMemo(
+    () =>
+      calculateDeposit({
+        service: formData.service,
+        deepCleaningSize: formData.deepCleaningSize,
+      }),
+    [formData.service, formData.deepCleaningSize]
+  );
 
   /*
    * Stop people picking a date in the past. Built from local date components,
@@ -116,6 +131,17 @@ export default function BookingForm() {
       const result = await response.json();
       if (!response.ok)
         throw new Error(result?.message || 'Something went wrong. Please try again.');
+
+      // A deposit applies: hand off to Stripe Checkout. Deliberately not
+      // clearing the form first, so the details survive a cancelled payment.
+      if (result.checkoutUrl) {
+        setStatus({
+          type: 'success',
+          message: 'Redirecting you to our secure payment page…',
+        });
+        window.location.assign(result.checkoutUrl);
+        return;
+      }
 
       setStatus({
         type: 'success',
@@ -377,6 +403,44 @@ export default function BookingForm() {
         />
       </div>
 
+      {deposit.required && (
+        <div className="rounded-4xl border border-nvg-200 bg-nvg-50 p-5">
+          <h3 className="text-base font-extrabold text-ink">
+            Deposit to secure your booking: {deposit.label}
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">
+            Fixed-quote work is reserved with a deposit, taken securely by card on the next screen.
+            It comes off your final price — the balance is invoiced once the work is complete. Card
+            details are handled entirely by Stripe and never reach our servers.
+          </p>
+
+          {/*
+            Consumer Contracts Regulations 2013: a consumer normally has 14 days
+            to cancel. Taking payment and starting work inside that window
+            requires their express request, which this records.
+          */}
+          <label className="mt-4 flex items-start gap-3 rounded-2xl border border-nvg-200 bg-white p-4 text-sm text-ink-muted">
+            <input
+              type="checkbox"
+              name="startWithinCancellationPeriod"
+              checked={formData.startWithinCancellationPeriod}
+              onChange={handleChange}
+              required
+              className="mt-0.5 h-4 w-4 shrink-0 accent-nvg-700"
+            />
+            <span>
+              I ask {SITE.name} to schedule and begin this work within the 14-day cancellation
+              period. I understand I can still cancel under the{' '}
+              <Link href="/terms" className="font-bold text-nvg-700 underline">
+                Terms &amp; Conditions
+              </Link>
+              , but that I must pay for work already carried out, and that I lose the right to
+              cancel once the service is fully performed. <span aria-hidden="true">*</span>
+            </span>
+          </label>
+        </div>
+      )}
+
       <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-ink-muted">
         <input
           type="checkbox"
@@ -401,7 +465,11 @@ export default function BookingForm() {
         type="submit"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Sending…' : 'Send Booking Request'}
+        {isSubmitting
+          ? 'Sending…'
+          : deposit.required
+            ? `Continue to secure payment — ${deposit.label} deposit`
+            : 'Send Booking Request'}
       </button>
 
       {/* Always in the DOM so assistive tech announces changes. */}

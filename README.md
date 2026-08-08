@@ -35,7 +35,47 @@ See [`.env.example`](.env.example) for the full list. The booking form needs the
 rather than failing silently.
 
 `NEXT_PUBLIC_GA_ID` is optional — analytics is only injected when a real GA4
-measurement ID is present.
+measurement ID is present, and then only after the visitor opts in.
+
+`STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are optional too. Leave them
+blank and the booking form works exactly as it did before payments existed: no
+deposit is requested and the enquiry is emailed as usual.
+
+## Booking deposits
+
+Fixed-quote work (deep cleaning, end of tenancy, commercial) is reserved with a
+deposit; hourly work is not. The policy lives in [`lib/pricing.js`](lib/pricing.js)
+— 25% of the indicative job value, floored at £50, capped at £150, and skipped
+entirely when that would exceed half the job value.
+
+The amount is always computed **server-side from the selected service**. The
+browser sends a service name, never a price.
+
+Flow:
+
+1. Form submits to `/api/book`, which validates, emails the enquiry to staff
+   (so nothing is lost if payment is abandoned), then creates a Stripe Checkout
+   Session and returns its URL.
+2. The browser redirects to Stripe. Card details never touch this server, which
+   keeps the business at PCI **SAQ-A**.
+3. Stripe calls `/api/stripe/webhook`, which verifies the signature and emails
+   staff that the deposit cleared. The redirect back to `/booking/confirmed`
+   proves nothing on its own and is never treated as payment.
+
+### Testing payments locally
+
+```bash
+# terminal 1
+npm run dev
+
+# terminal 2 — forwards real Stripe events to your machine
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+Copy the `whsec_…` it prints into `STRIPE_WEBHOOK_SECRET` in `.env.local`, then
+pay with test card `4242 4242 4242 4242`, any future expiry and any CVC.
+Card `4000 0027 6000 3184` triggers a 3-D Secure challenge, which is worth
+exercising at least once since UK cards frequently require it.
 
 ## Project structure
 

@@ -1,7 +1,9 @@
-import nodemailer from 'nodemailer';
 import { SITE } from '@/lib/site';
+import { calculateDeposit, formatPence } from '@/lib/pricing';
+import { sendBookingNotification, sendCustomerAcknowledgement, smtpConfigured } from '@/lib/email';
+import { getStripe, stripeConfigured } from '@/lib/stripe';
 
-// nodemailer needs the Node runtime (not Edge).
+// nodemailer and the Stripe SDK both need the Node runtime (not Edge).
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +29,8 @@ const FIELD_LIMITS = {
 const MAX_ADDONS = 20;
 const MAX_ADDON_LENGTH = 80;
 
-// Deliberately conservative: this endpoint sends two emails per call, so abuse
-// costs the business its SMTP reputation.
+// Deliberately conservative: this endpoint sends email and can open a Stripe
+// session, so abuse costs the business its SMTP reputation.
 const RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
 /* -------------------------------------------------------------------------- */
@@ -73,15 +75,6 @@ function rateLimited(ip) {
 /* Validation helpers                                                          */
 /* -------------------------------------------------------------------------- */
 
-function escapeHtml(value = '') {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
 /** Trims, coerces to string and enforces a per-field length cap. */
 function clean(value, limit) {
   if (value === undefined || value === null) return '';
@@ -98,6 +91,10 @@ function hasHeaderInjection(value) {
 
 function jsonError(message, status) {
   return Response.json({ success: false, message }, { status });
+}
+
+function originFrom(req) {
+  return process.env.NEXT_PUBLIC_SITE_URL || req.headers.get('origin') || SITE.url;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -182,8 +179,7 @@ export async function POST(req) {
     }
 
     // Fail loudly in logs (never to the client) if SMTP is misconfigured.
-    const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
-    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    if (!smtpConfigured()) {
       console.error('Booking form: SMTP environment variables are not configured.');
       return jsonError(
         `Our booking system is temporarily unavailable. Please call ${SITE.phoneDisplay}.`,
@@ -191,126 +187,113 @@ export async function POST(req) {
       );
     }
 
-    const port = Number(process.env.SMTP_PORT || 465);
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port,
-      secure: port === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    });
+    /*
+     * The deposit is derived server-side from the chosen service. The browser
+     * sends a service name, never an amount — otherwise anyone could book a
+     * five-bedroom deep clean for a penny.
+     */
+    const deposit = calculateDeposit(data);
+    const takingDeposit = deposit.required && stripeConfigured();
 
-    const recipient = process.env.SMTP_TO || SITE.email;
-    const from = process.env.SMTP_FROM || SMTP_USER;
-
-    // Single source of truth for both the HTML and plaintext bodies, so the
-    // two can never drift apart.
-    const summary = [
-      ['Name', data.name],
-      ['Phone', data.phone],
-      ['Email', data.email],
-      ['Address', data.address],
-      ['Service', data.service],
-      ['Deep cleaning property size', data.deepCleaningSize],
-      ['Hours requested', data.hours === 'Other' ? data.customHours : data.hours],
-      ['Add-on services', data.addons.join(', ')],
-      ['Preferred date', data.date],
-      ['Preferred time', data.time],
-      ['Property size', data.propertySize],
-      ['Additional notes', data.notes],
-    ].filter(([, value]) => value);
-
-    const htmlRows = summary
-      .map(
-        ([label, value]) =>
-          `<tr><td style="padding:6px 12px 6px 0;vertical-align:top;color:#475569;"><strong>${escapeHtml(
-            label
-          )}</strong></td><td style="padding:6px 0;vertical-align:top;color:#0f172a;">${escapeHtml(
-            value
-          ).replaceAll('\n', '<br/>')}</td></tr>`
-      )
-      .join('');
-
-    const textRows = summary.map(([label, value]) => `${label}: ${value}`).join('\n');
-
-    const wrap = (heading, inner) => `
-      <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0f172a;">
-        <h2 style="color:#0f766e;margin:0 0 16px;">${escapeHtml(heading)}</h2>
-        ${inner}
-      </div>`;
-
-    // The internal notification is the one that must not be lost, so it is sent
-    // first and its failure fails the request.
-    await transporter.sendMail({
-      from: { name: `${SITE.name} Website`, address: from },
-      to: recipient,
-      // Passed structured rather than interpolated so nodemailer quotes the
-      // display name itself — a name containing < > " ; or , cannot then
-      // reshape the header.
-      replyTo: { name: data.name, address: data.email },
-      subject: `New booking request — ${data.service || 'Cleaning Service'}`,
-      html: wrap(
-        'New Booking Request',
-        `<table cellpadding="0" cellspacing="0">${htmlRows}</table>`
-      ),
-      text: `New Booking Request\n\n${textRows}\n`,
-    });
-
-    // Both size fields are included: deep cleans record the tier in
-    // "Deep cleaning property size" and leave the free-text field empty.
-    const ACK_LABELS = [
-      'Service',
-      'Deep cleaning property size',
-      'Property size',
-      'Hours requested',
-      'Preferred date',
-      'Preferred time',
-    ];
-    const ackFields = summary.filter(([label]) => ACK_LABELS.includes(label));
-
-    const ackRows = ackFields
-      .map(
-        ([label, value]) =>
-          `<p style="margin:4px 0;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`
-      )
-      .join('');
-
-    const ackText = ackFields.map(([label, value]) => `${label}: ${value}`).join('\n');
+    if (deposit.required && !stripeConfigured()) {
+      // Deposits are configured for this service but payments are not wired up.
+      // Fall through to a normal enquiry rather than blocking the booking.
+      console.warn('Deposit applies to this service but STRIPE_SECRET_KEY is not configured.');
+    }
 
     /*
-     * Best-effort courtesy email. The booking has already reached the business
-     * at this point, so a failure here must not fail the request — returning an
-     * error would prompt the customer to resubmit and send staff a duplicate
-     * notification. The failure is logged instead.
+     * Consumer Contracts Regulations 2013: taking payment before the 14-day
+     * cancellation period ends requires the customer's express request for
+     * work to begin within it. Without that, a completed job could still be
+     * cancelled for a full refund.
      */
+    if (takingDeposit && body.startWithinCancellationPeriod !== true) {
+      return jsonError(
+        'Please confirm you would like us to schedule the work before you can pay a deposit.',
+        400
+      );
+    }
+
+    const depositNote = takingDeposit
+      ? `Deposit of ${deposit.label} requested — awaiting payment.`
+      : '';
+
+    // Notify the business first: no enquiry is lost even if the customer
+    // abandons the Stripe page. Its failure fails the request.
+    await sendBookingNotification(data, { depositNote });
+
+    // Courtesy email. The booking has already landed, so failure is logged,
+    // not surfaced — an error here would prompt a resubmit and duplicate the
+    // staff notification.
     try {
-      await transporter.sendMail({
-        from: { name: SITE.name, address: from },
-        to: data.email,
-        subject: `Thank you for your booking request — ${SITE.name}`,
-        html: wrap(
-          'Thank you for your booking request',
-          `<p>Hi ${escapeHtml(data.name)},</p>
-         <p>Thank you for contacting ${escapeHtml(SITE.name)}. We have received your request and will get back to you shortly.</p>
-         <h3 style="margin:20px 0 8px;">Your booking details</h3>
-         ${ackRows}
-         <p style="margin-top:20px;">If anything changes, reply to this email or call us on <strong>${SITE.phoneDisplay}</strong>.</p>
-         <p>Kind regards,<br/>${escapeHtml(SITE.name)}<br/>${SITE.phoneDisplay}<br/>${SITE.email}</p>`
-        ),
-        text:
-          `Hi ${data.name},\n\n` +
-          `Thank you for contacting ${SITE.name}. We have received your request and will get back to you shortly.\n\n` +
-          `Your booking details:\n${ackText}\n\n` +
-          `If anything changes, reply to this email or call us on ${SITE.phoneDisplay}.\n\n` +
-          `Kind regards,\n${SITE.name}\n${SITE.phoneDisplay}\n${SITE.email}\n`,
+      await sendCustomerAcknowledgement(data, {
+        depositNote: takingDeposit
+          ? `A deposit of ${deposit.label} is payable to secure your slot. The balance is due once the work is complete.`
+          : '',
       });
     } catch (ackError) {
       console.error('Booking acknowledgement email failed (booking was received):', ackError);
     }
 
-    return Response.json({ success: true, message: 'Booking request sent.' });
+    if (!takingDeposit) {
+      return Response.json({ success: true, message: 'Booking request sent.' });
+    }
+
+    /*
+     * Checkout Session rather than a hand-built card form: card details never
+     * touch this server, which keeps the business at PCI SAQ-A.
+     */
+    const origin = originFrom(req);
+    const stripe = getStripe();
+
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: 'payment',
+        customer_email: data.email,
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: 'gbp',
+              unit_amount: deposit.amountPence,
+              product_data: {
+                name: `Booking deposit — ${data.service || 'Cleaning Service'}`,
+                description: `Deposit towards your booking on ${data.date} at ${data.time}. The balance is invoiced once the work is complete.`,
+              },
+            },
+          },
+        ],
+        success_url: `${origin}/booking/confirmed?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/booking/cancelled`,
+        // Kept small and non-sensitive: metadata is capped at 500 characters per
+        // value, and the full booking detail is already in the staff email.
+        metadata: {
+          customerName: data.name.slice(0, 100),
+          customerEmail: data.email.slice(0, 100),
+          service: (data.service || '').slice(0, 100),
+          preferredDate: data.date,
+          preferredTime: data.time,
+        },
+        payment_intent_data: {
+          description: `NVG booking deposit — ${data.name}`,
+        },
+        expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+      },
+      {
+        // Guards against a double-submit creating two sessions for one booking.
+        idempotencyKey: `booking:${data.email}:${data.date}:${data.time}:${deposit.amountPence}`,
+      }
+    );
+
+    return Response.json({
+      success: true,
+      message: 'Booking request received. Redirecting to secure payment…',
+      checkoutUrl: session.url,
+      depositLabel: formatPence(deposit.amountPence),
+    });
   } catch (error) {
-    // Log the detail server-side; return nothing that reveals SMTP internals.
-    console.error('Booking form email error:', error);
+    // Log the detail server-side; return nothing that reveals SMTP or Stripe internals.
+    console.error('Booking form error:', error);
     return jsonError(
       `Your request could not be sent. Please call or WhatsApp us on ${SITE.phoneDisplay}.`,
       500
