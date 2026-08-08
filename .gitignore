@@ -31,6 +31,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# local email render, produced for checking the invoice layout
+invoice-preview.html
+
 # os / editor
 .DS_Store
 Thumbs.db

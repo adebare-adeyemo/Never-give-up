@@ -1,5 +1,5 @@
 import { getStripe, stripeConfigured } from '@/lib/stripe';
-import { sendDepositReceipt, smtpConfigured } from '@/lib/email';
+import { sendPaymentNotice, smtpConfigured } from '@/lib/email';
 import { formatPence } from '@/lib/pricing';
 
 export const runtime = 'nodejs';
@@ -78,24 +78,45 @@ export async function POST(req) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-
-        // `complete` with an unpaid status happens for delayed payment methods;
-        // only treat an actually-paid session as a deposit.
-        if (session.payment_status !== 'paid') break;
-
         const meta = session.metadata || {};
+        const held = meta.captureMode === 'manual';
 
-        if (smtpConfigured()) {
-          await sendDepositReceipt({
-            name: meta.customerName || session.customer_details?.name || 'Customer',
-            email: meta.customerEmail || session.customer_details?.email || '',
-            service: meta.service || 'Cleaning Service',
-            amountLabel: formatPence(session.amount_total ?? 0),
-            reference: session.payment_intent || session.id,
-          });
-        } else {
-          console.error('Deposit paid but SMTP is not configured; no staff email sent.');
+        /*
+         * With manual capture the session completes as `unpaid` — the funds are
+         * authorised, not taken. That is the success case for a held booking,
+         * so it must not be filtered out as an unpaid session.
+         */
+        if (!held && session.payment_status !== 'paid') break;
+
+        if (!smtpConfigured()) {
+          console.error('Payment event received but SMTP is not configured; no staff email sent.');
+          break;
         }
+
+        await sendPaymentNotice({
+          held,
+          name: meta.customerName || session.customer_details?.name || 'Customer',
+          email: meta.customerEmail || session.customer_details?.email || '',
+          service: meta.service || 'Cleaning Service',
+          reference: meta.reference || session.client_reference_id || session.id,
+          cleaningDate: meta.cleaningDate || '',
+          amountPence: session.amount_total ?? 0,
+          paymentIntentId: session.payment_intent || '',
+        });
+        break;
+      }
+
+      case 'payment_intent.canceled':
+        // The hold was released without capture — no charge to the customer.
+        console.info('Authorisation released without capture:', event.data.object.id);
+        break;
+
+      case 'payment_intent.succeeded': {
+        // Fires on capture. Logged so the ledger is visible without opening Stripe.
+        const intent = event.data.object;
+        console.info(
+          `Captured ${formatPence(intent.amount_received ?? 0)} of ${formatPence(intent.amount ?? 0)} for ${intent.id}`
+        );
         break;
       }
 

@@ -3,51 +3,23 @@
 import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { SITE } from '@/lib/site';
-import { calculateDeposit } from '@/lib/pricing';
-
-const SERVICE_OPTIONS = [
-  'Regular Domestic Cleaning — £20/hour',
-  'Ironing Service — from £15/hour',
-  'Deep Cleaning — fixed quote from £120',
-  'Airbnb Cleaning — from £55',
-  'End of Tenancy Cleaning — custom quote',
-  'Office Cleaning — custom quote',
-  'Restaurant Cleaning — custom quote',
-  'Pressure Washing — from £60',
-];
-
-const DEEP_CLEANING_SIZES = [
-  'Studio/1 Bed — from £120',
-  '2 Bedroom — from £160',
-  '3 Bedroom — from £250',
-  '4 Bedroom — from £350',
-  '5+ Bedroom — from £500+',
-];
-
-const HOUR_OPTIONS = ['2 hrs', '3 hrs', '4 hrs', '6 hrs', 'Other'];
-
-const ADDON_OPTIONS = [
-  'Inside Fridge — £20',
-  'Inside Oven — £35',
-  'Ironing Service — from £15/hour',
-  'Carpet cleaning',
-  'Heavy mould',
-  'Pet hair',
-  'Upholstery cleaning',
-  'Nicotine staining',
-  'External windows',
-  'Biohazard issues',
-  'Balconies',
-  'Heavily neglected kitchens / ovens',
-];
+import {
+  SERVICES,
+  ADDONS,
+  HOUR_OPTIONS,
+  calculateQuote,
+  cancellationFeePence,
+  formatPence,
+} from '@/lib/pricing';
 
 const INITIAL_FORM = {
   name: '',
   phone: '',
   email: '',
   address: '',
-  service: SERVICE_OPTIONS[0],
+  service: SERVICES[0].label,
   deepCleaningSize: '',
+  serviceTier: '',
   hours: '',
   customHours: '',
   date: '',
@@ -66,23 +38,39 @@ export default function BookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const statusRef = useRef(null);
 
-  const showDeepCleaningSizes = useMemo(
-    () => formData.service.includes('Deep Cleaning'),
+  const selectedService = useMemo(
+    () => SERVICES.find((entry) => entry.label === formData.service),
     [formData.service]
   );
+
+  // Deep cleaning keeps its own field name; every other tiered service shares
+  // `serviceTier`.
+  const tierField = selectedService?.id === 'deep' ? 'deepCleaningSize' : 'serviceTier';
+
   const showOtherHours = formData.hours === 'Other';
 
   /*
    * Display only. The server recalculates this from the same module and is the
-   * authority on what gets charged — the browser never sends an amount.
+   * authority on what gets invoiced — the browser never sends an amount.
    */
-  const deposit = useMemo(
+  const quote = useMemo(
     () =>
-      calculateDeposit({
+      calculateQuote({
         service: formData.service,
         deepCleaningSize: formData.deepCleaningSize,
+        serviceTier: formData.serviceTier,
+        hours: formData.hours,
+        customHours: formData.customHours,
+        addons: formData.addons,
       }),
-    [formData.service, formData.deepCleaningSize]
+    [
+      formData.service,
+      formData.deepCleaningSize,
+      formData.serviceTier,
+      formData.hours,
+      formData.customHours,
+      formData.addons,
+    ]
   );
 
   /*
@@ -100,7 +88,10 @@ export default function BookingForm() {
     const { name, value, type, checked } = event.target;
     setFormData((current) => {
       const next = { ...current, [name]: type === 'checkbox' ? checked : value };
-      if (name === 'service' && !value.includes('Deep Cleaning')) next.deepCleaningSize = '';
+      if (name === 'service') {
+        next.deepCleaningSize = '';
+        next.serviceTier = '';
+      }
       if (name === 'hours' && value !== 'Other') next.customHours = '';
       return next;
     });
@@ -132,20 +123,11 @@ export default function BookingForm() {
       if (!response.ok)
         throw new Error(result?.message || 'Something went wrong. Please try again.');
 
-      // A deposit applies: hand off to Stripe Checkout. Deliberately not
-      // clearing the form first, so the details survive a cancelled payment.
-      if (result.checkoutUrl) {
-        setStatus({
-          type: 'success',
-          message: 'Redirecting you to our secure payment page…',
-        });
-        window.location.assign(result.checkoutUrl);
-        return;
-      }
-
       setStatus({
         type: 'success',
-        message: `Thank you. Your booking request has been sent to ${SITE.name}. We will reply by email shortly.`,
+        message:
+          result.message ||
+          `Thank you. Your booking request has been sent to ${SITE.name}. We will reply by email shortly.`,
       });
       setFormData(INITIAL_FORM);
     } catch (error) {
@@ -245,27 +227,28 @@ export default function BookingForm() {
             required
             className="field"
           >
-            {SERVICE_OPTIONS.map((option) => (
-              <option key={option}>{option}</option>
+            {SERVICES.map((entry) => (
+              <option key={entry.id}>{entry.label}</option>
             ))}
           </select>
         </label>
 
-        {showDeepCleaningSizes && (
+        {/* Tiered services need their tier before a price can be worked out. */}
+        {selectedService?.tiers && (
           <label className="grid gap-2">
             <span className="field-label">
-              Deep cleaning property size <span aria-hidden="true">*</span>
+              {selectedService.tierLabel} <span aria-hidden="true">*</span>
             </span>
             <select
-              name="deepCleaningSize"
-              value={formData.deepCleaningSize}
+              name={tierField}
+              value={formData[tierField]}
               onChange={handleChange}
               required
               className="field"
             >
-              <option value="">Select property size</option>
-              {DEEP_CLEANING_SIZES.map((option) => (
-                <option key={option}>{option}</option>
+              <option value="">Select {selectedService.tierLabel.toLowerCase()}</option>
+              {selectedService.tiers.map((tier) => (
+                <option key={tier.label}>{tier.label}</option>
               ))}
             </select>
           </label>
@@ -351,7 +334,7 @@ export default function BookingForm() {
         <legend className="px-2 text-sm font-bold text-ink">Add-on services (optional)</legend>
         <p className="mb-4 text-sm text-ink-muted">Select any extra services you may need.</p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {ADDON_OPTIONS.map((option) => (
+          {ADDONS.map(({ label: option }) => (
             <label
               key={option}
               className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-semibold text-ink"
@@ -403,15 +386,39 @@ export default function BookingForm() {
         />
       </div>
 
-      {deposit.required && (
+      {/* Live quote, so nobody is surprised by the invoice that follows. */}
+      {!quote.quoteOnly && quote.totalPence > 0 && (
         <div className="rounded-4xl border border-nvg-200 bg-nvg-50 p-5">
-          <h3 className="text-base font-extrabold text-ink">
-            Deposit to secure your booking: {deposit.label}
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-ink-muted">
-            Fixed-quote work is reserved with a deposit, taken securely by card on the next screen.
-            It comes off your final price — the balance is invoiced once the work is complete. Card
-            details are handled entirely by Stripe and never reach our servers.
+          <h3 className="text-base font-extrabold text-ink">Your quote</h3>
+
+          <ul className="mt-4 space-y-2">
+            {quote.lines.map((line) => (
+              <li
+                key={line.description}
+                className="flex justify-between gap-4 border-b border-nvg-200 pb-2 text-sm text-ink-muted last:border-b-0"
+              >
+                <span>
+                  {line.description}
+                  {line.note ? (
+                    <span className="block text-xs text-ink-subtle">{line.note}</span>
+                  ) : null}
+                </span>
+                <span className="shrink-0 font-bold text-ink">
+                  {line.pence === null ? 'Quoted separately' : formatPence(line.pence)}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-4 flex justify-between gap-4 text-lg font-extrabold text-ink">
+            <span>Total</span>
+            <span className="text-nvg-700">{formatPence(quote.totalPence)}</span>
+          </p>
+
+          <p className="mt-3 text-sm leading-6 text-ink-muted">
+            We will email your invoice with a secure payment link. Prices are starting prices — if
+            the property needs more work than described we will agree any change with you first.
+            Card details are handled entirely by Stripe and never reach our servers.
           </p>
 
           {/*
@@ -430,12 +437,14 @@ export default function BookingForm() {
             />
             <span>
               I ask {SITE.name} to schedule and begin this work within the 14-day cancellation
-              period. I understand I can still cancel under the{' '}
+              period. I understand that cancelling with less than 24 hours&rsquo; notice incurs a
+              60% cancellation fee of{' '}
+              <strong>{formatPence(cancellationFeePence(quote.totalPence))}</strong>, as set out in
+              the{' '}
               <Link href="/terms" className="font-bold text-nvg-700 underline">
                 Terms &amp; Conditions
               </Link>
-              , but that I must pay for work already carried out, and that I lose the right to
-              cancel once the service is fully performed. <span aria-hidden="true">*</span>
+              . <span aria-hidden="true">*</span>
             </span>
           </label>
         </div>
@@ -467,8 +476,8 @@ export default function BookingForm() {
       >
         {isSubmitting
           ? 'Sending…'
-          : deposit.required
-            ? `Continue to secure payment — ${deposit.label} deposit`
+          : !quote.quoteOnly && quote.totalPence > 0
+            ? `Book and send my invoice — ${formatPence(quote.totalPence)}`
             : 'Send Booking Request'}
       </button>
 
