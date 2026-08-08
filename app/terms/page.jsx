@@ -90,9 +90,21 @@ export default function Terms() {
       <h2 id="payment">4. Payment</h2>
       <ul>
         <li>
-          Unless we agree otherwise in writing, payment is due on the day the work is completed.
+          <strong>Deposits.</strong> Fixed-quote work — deep cleaning, end of tenancy, and
+          commercial jobs — is reserved with a deposit paid at the time of booking. The deposit is
+          deducted from your final price. Hourly work does not require a deposit.
         </li>
-        <li>We accept bank transfer and card payment. We do not store your card details.</li>
+        <li>
+          Unless we agree otherwise in writing, the balance is due on the day the work is completed.
+        </li>
+        <li>
+          We accept bank transfer and card payment. Card payments are handled by Stripe on their own
+          secure pages; we never see or store your card details.
+        </li>
+        <li>
+          Deposits are refundable in line with section&nbsp;5 and section&nbsp;6. If we cancel, or
+          if you cancel with the required notice, your deposit is returned in full.
+        </li>
         <li>
           For commercial accounts with agreed credit terms, invoices are payable within{' '}
           <strong>14 days</strong>.

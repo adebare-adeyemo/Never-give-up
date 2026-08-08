@@ -67,8 +67,10 @@ export default function Privacy() {
           messages and call notes exchanged with us.
         </li>
         <li>
-          <strong>Payment data</strong> — records of invoices and payments received. We do{' '}
-          <strong>not</strong> collect or store card numbers on this website.
+          <strong>Payment data</strong> — records of deposits, invoices and payments received. Card
+          payments are processed by Stripe on their own secure pages: we receive confirmation that a
+          payment succeeded and the last four digits, and we do <strong>not</strong> collect,
+          transmit or store full card numbers on this website.
         </li>
         <li>
           <strong>Technical data</strong> — if you consent to analytics, your IP address, device
@@ -181,8 +183,17 @@ export default function Privacy() {
           this website on our instructions.
         </li>
         <li>
-          <strong>Our accountant and payment providers</strong> — for invoicing, bookkeeping and
-          tax.
+          <strong>Stripe</strong> — our payment processor, who handles card details directly and
+          tells us only whether a payment succeeded. Stripe is a controller in its own right for
+          fraud prevention and may process data outside the UK under approved transfer safeguards.
+          See{' '}
+          <a href="https://stripe.com/gb/privacy" target="_blank" rel="noopener noreferrer">
+            Stripe&rsquo;s privacy policy
+          </a>
+          .
+        </li>
+        <li>
+          <strong>Our accountant</strong> — for invoicing, bookkeeping and tax.
         </li>
         <li>
           <strong>Our insurers and professional advisers</strong> — where a claim, complaint or
