@@ -1,7 +1,13 @@
 import { SITE } from '@/lib/site';
-import { calculateDeposit, formatPence } from '@/lib/pricing';
-import { sendBookingNotification, sendCustomerAcknowledgement, smtpConfigured } from '@/lib/email';
-import { getStripe, stripeConfigured } from '@/lib/stripe';
+import { calculateQuote, cancellationFeePence, formatPence } from '@/lib/pricing';
+import {
+  sendBookingNotification,
+  sendBookingInvoice,
+  sendCustomerAcknowledgement,
+  smtpConfigured,
+} from '@/lib/email';
+import { stripeConfigured } from '@/lib/stripe';
+import { bookingReference, createPayToken } from '@/lib/paylink';
 
 // nodemailer and the Stripe SDK both need the Node runtime (not Edge).
 export const runtime = 'nodejs';
@@ -19,6 +25,7 @@ const FIELD_LIMITS = {
   address: 300,
   service: 120,
   deepCleaningSize: 80,
+  serviceTier: 80,
   hours: 40,
   customHours: 40,
   date: 40,
@@ -188,17 +195,15 @@ export async function POST(req) {
     }
 
     /*
-     * The deposit is derived server-side from the chosen service. The browser
-     * sends a service name, never an amount — otherwise anyone could book a
-     * five-bedroom deep clean for a penny.
+     * The quote is built server-side from the published price list. The browser
+     * sends a service name and tier, never an amount — otherwise anyone could
+     * book a five-bedroom deep clean for a penny.
      */
-    const deposit = calculateDeposit(data);
-    const takingDeposit = deposit.required && stripeConfigured();
+    const quote = calculateQuote(data);
+    const canInvoice = !quote.quoteOnly && quote.totalPence > 0 && stripeConfigured();
 
-    if (deposit.required && !stripeConfigured()) {
-      // Deposits are configured for this service but payments are not wired up.
-      // Fall through to a normal enquiry rather than blocking the booking.
-      console.warn('Deposit applies to this service but STRIPE_SECRET_KEY is not configured.');
+    if (!quote.quoteOnly && quote.totalPence > 0 && !stripeConfigured()) {
+      console.warn('Booking has a calculable total but STRIPE_SECRET_KEY is not configured.');
     }
 
     /*
@@ -207,89 +212,74 @@ export async function POST(req) {
      * work to begin within it. Without that, a completed job could still be
      * cancelled for a full refund.
      */
-    if (takingDeposit && body.startWithinCancellationPeriod !== true) {
+    if (canInvoice && body.startWithinCancellationPeriod !== true) {
       return jsonError(
-        'Please confirm you would like us to schedule the work before you can pay a deposit.',
+        'Please confirm you would like us to schedule the work before you can be invoiced.',
         400
       );
     }
 
-    const depositNote = takingDeposit
-      ? `Deposit of ${deposit.label} requested — awaiting payment.`
-      : '';
+    const reference = bookingReference(data.email, data.date);
 
-    // Notify the business first: no enquiry is lost even if the customer
-    // abandons the Stripe page. Its failure fails the request.
-    await sendBookingNotification(data, { depositNote });
+    const staffNote = canInvoice
+      ? `Invoice ${reference} for ${formatPence(quote.totalPence)} sent — awaiting payment. ` +
+        `Late-cancellation fee would be ${formatPence(cancellationFeePence(quote.totalPence))} (60%).`
+      : `Quote required: ${quote.reason} No invoice sent.`;
 
-    // Courtesy email. The booking has already landed, so failure is logged,
-    // not surfaced — an error here would prompt a resubmit and duplicate the
-    // staff notification.
-    try {
-      await sendCustomerAcknowledgement(data, {
-        depositNote: takingDeposit
-          ? `A deposit of ${deposit.label} is payable to secure your slot. The balance is due once the work is complete.`
-          : '',
-      });
-    } catch (ackError) {
-      console.error('Booking acknowledgement email failed (booking was received):', ackError);
-    }
+    // Notify the business first: no enquiry is lost even if the customer never
+    // opens the invoice. Its failure fails the request.
+    await sendBookingNotification(data, { depositNote: staffNote });
 
-    if (!takingDeposit) {
+    if (!canInvoice) {
+      // No published price for this booking, so it is taken as an enquiry and
+      // priced by hand — exactly as it was before payments existed.
+      try {
+        await sendCustomerAcknowledgement(data);
+      } catch (ackError) {
+        console.error('Booking acknowledgement email failed (booking was received):', ackError);
+      }
       return Response.json({ success: true, message: 'Booking request sent.' });
     }
 
     /*
-     * Checkout Session rather than a hand-built card form: card details never
-     * touch this server, which keeps the business at PCI SAQ-A.
+     * Signed token rather than a Checkout Session: sessions expire within 24
+     * hours, and the invoice link needs to keep working for as long as the
+     * booking is live. /pay/<token> mints a session when the customer clicks.
      */
-    const origin = originFrom(req);
-    const stripe = getStripe();
+    const token = createPayToken({
+      reference,
+      name: data.name,
+      email: data.email,
+      service: data.service,
+      amountPence: quote.totalPence,
+      date: data.date,
+      time: data.time,
+    });
 
-    const session = await stripe.checkout.sessions.create(
-      {
-        mode: 'payment',
-        customer_email: data.email,
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: 'gbp',
-              unit_amount: deposit.amountPence,
-              product_data: {
-                name: `Booking deposit — ${data.service || 'Cleaning Service'}`,
-                description: `Deposit towards your booking on ${data.date} at ${data.time}. The balance is invoiced once the work is complete.`,
-              },
-            },
-          },
-        ],
-        success_url: `${origin}/booking/confirmed?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/booking/cancelled`,
-        // Kept small and non-sensitive: metadata is capped at 500 characters per
-        // value, and the full booking detail is already in the staff email.
-        metadata: {
-          customerName: data.name.slice(0, 100),
-          customerEmail: data.email.slice(0, 100),
-          service: (data.service || '').slice(0, 100),
-          preferredDate: data.date,
-          preferredTime: data.time,
-        },
-        payment_intent_data: {
-          description: `NVG booking deposit — ${data.name}`,
-        },
-        expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
-      },
-      {
-        // Guards against a double-submit creating two sessions for one booking.
-        idempotencyKey: `booking:${data.email}:${data.date}:${data.time}:${deposit.amountPence}`,
-      }
+    const payUrl = `${originFrom(req)}/pay/${token}`;
+
+    // Funds are only held (rather than taken) when the clean is close enough
+    // for a card authorisation to still be valid on the day.
+    const leadDays = Math.ceil(
+      (new Date(`${data.date}T00:00:00`).getTime() - Date.now()) / 86400000
     );
+    const holdsFunds = Number.isFinite(leadDays) && leadDays <= 7;
+
+    try {
+      await sendBookingInvoice({ data, quote, reference, payUrl, holdsFunds });
+    } catch (invoiceError) {
+      console.error('Invoice email failed (booking was received):', invoiceError);
+      return jsonError(
+        `We received your booking but could not email your invoice. Please call ${SITE.phoneDisplay}.`,
+        500
+      );
+    }
 
     return Response.json({
       success: true,
-      message: 'Booking request received. Redirecting to secure payment…',
-      checkoutUrl: session.url,
-      depositLabel: formatPence(deposit.amountPence),
+      message: `Thank you. Invoice ${reference} for ${formatPence(quote.totalPence)} has been emailed to you with a secure payment link.`,
+      reference,
+      totalLabel: formatPence(quote.totalPence),
     });
   } catch (error) {
     // Log the detail server-side; return nothing that reveals SMTP or Stripe internals.

@@ -90,20 +90,28 @@ export default function Terms() {
       <h2 id="payment">4. Payment</h2>
       <ul>
         <li>
-          <strong>Deposits.</strong> Fixed-quote work — deep cleaning, end of tenancy, and
-          commercial jobs — is reserved with a deposit paid at the time of booking. The deposit is
-          deducted from your final price. Hourly work does not require a deposit.
+          <strong>Invoice on booking.</strong> When you book a service with a published price, we
+          email you an invoice with a secure payment link. Services shown as &ldquo;custom
+          quote&rdquo; are priced by hand and invoiced separately.
         </li>
         <li>
-          Unless we agree otherwise in writing, the balance is due on the day the work is completed.
+          <strong>Your money is held, not taken.</strong> Where your clean is close enough for us to
+          do so, paying places a <strong>hold</strong> on your card for the invoice amount. The
+          money is only taken once the work is complete. If the clean does not go ahead, the hold is
+          released and you are charged nothing.
+        </li>
+        <li>
+          For bookings made further in advance than a card authorisation can be held, payment is
+          taken at the time you pay and refunded under the same rules if the work does not go ahead.
         </li>
         <li>
           We accept bank transfer and card payment. Card payments are handled by Stripe on their own
           secure pages; we never see or store your card details.
         </li>
         <li>
-          Deposits are refundable in line with section&nbsp;5 and section&nbsp;6. If we cancel, or
-          if you cancel with the required notice, your deposit is returned in full.
+          Published prices are <strong>starting prices</strong>. If the property needs more work
+          than you described, we will agree any change with you before we start, and invoice any
+          difference separately.
         </li>
         <li>
           For commercial accounts with agreed credit terms, invoices are payable within{' '}
@@ -155,8 +163,14 @@ export default function Terms() {
           There is no charge for cancellations made with that notice.
         </li>
         <li>
-          Cancellations with less than 24 hours&rsquo; notice may be charged at{' '}
-          <strong>50% of the booking value</strong> to cover the reserved slot and staff time.
+          Cancellations with less than 24 hours&rsquo; notice are charged a cancellation fee of{' '}
+          <strong>60% of the booking value</strong>. At that point the slot has been reserved, staff
+          have been scheduled and the time can no longer be resold, so this reflects the loss we
+          incur.
+        </li>
+        <li>
+          Where we are holding funds, we take the 60% fee from the hold and release the rest. Where
+          payment has already been taken, we refund the balance after deducting the fee.
         </li>
         <li>
           If our cleaner cannot get in — nobody is home, keys do not work, or the alarm cannot be

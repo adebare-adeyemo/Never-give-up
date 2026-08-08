@@ -41,26 +41,51 @@ measurement ID is present, and then only after the visitor opts in.
 blank and the booking form works exactly as it did before payments existed: no
 deposit is requested and the enquiry is emailed as usual.
 
-## Booking deposits
+## Booking, invoicing and payment
 
-Fixed-quote work (deep cleaning, end of tenancy, commercial) is reserved with a
-deposit; hourly work is not. The policy lives in [`lib/pricing.js`](lib/pricing.js)
-— 25% of the indicative job value, floored at £50, capped at £150, and skipped
-entirely when that would exceed half the job value.
+Every price comes from [`lib/pricing.js`](lib/pricing.js), which mirrors the
+published price list on `/pricing` exactly. Services marked "custom quote" there
+have no figure here either — those bookings are taken as enquiries and priced by
+hand, with no invoice sent.
 
-The amount is always computed **server-side from the selected service**. The
-browser sends a service name, never a price.
+Totals are always computed **server-side from the selected service and tier**.
+The browser sends a service name, never a price.
 
 Flow:
 
-1. Form submits to `/api/book`, which validates, emails the enquiry to staff
-   (so nothing is lost if payment is abandoned), then creates a Stripe Checkout
-   Session and returns its URL.
-2. The browser redirects to Stripe. Card details never touch this server, which
-   keeps the business at PCI **SAQ-A**.
-3. Stripe calls `/api/stripe/webhook`, which verifies the signature and emails
-   staff that the deposit cleared. The redirect back to `/booking/confirmed`
-   proves nothing on its own and is never treated as payment.
+1. The form submits to `/api/book`, which validates, works out the quote, and
+   emails staff (so nothing is lost even if the customer never pays).
+2. The customer is emailed an invoice containing a link to `/pay/<token>`. The
+   token is the booking itself, HMAC-signed — no database, and a tampered amount
+   fails verification.
+3. Clicking the link mints a fresh Stripe Checkout Session. Card details never
+   touch this server, which keeps the business at PCI **SAQ-A**.
+4. Stripe calls `/api/stripe/webhook`, which verifies the signature and tells
+   staff what to do next. The redirect to `/booking/confirmed` proves nothing on
+   its own and is never treated as payment.
+
+### Held funds, not taken funds
+
+Where the clean is within the card authorisation window, paying places a **hold**
+on the card. Money moves only when staff capture it:
+
+| Outcome                         | Action in the Stripe Dashboard | Customer pays        |
+| ------------------------------- | ------------------------------ | -------------------- |
+| Clean completed                 | Capture in full                | Full amount          |
+| Cancelled with under 24h notice | Capture 60%                    | 60% cancellation fee |
+| Clean did not go ahead          | Cancel the payment             | Nothing              |
+
+Capturing nothing costs nothing — an authorisation that is cancelled carries no
+processing fee, which is why this is preferred over charging and refunding.
+
+Card authorisations are valid for **7 days** by default, and up to 30 with
+extended authorisation (which Stripe only enables on IC+ pricing — ask them).
+For a clean booked further out than the hold can last, payment is taken normally
+and refunded under the same rules; `/pay/[token]` decides which applies and
+records it in the session metadata.
+
+Staff never have to work out the 60% themselves — the notification email states
+the exact amounts to capture.
 
 ### Testing payments locally
 
