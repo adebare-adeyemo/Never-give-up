@@ -1,10 +1,46 @@
 import Image from 'next/image';
-const items=[
- ['bedroom-deep-cleaning-leeds-before-after.webp','Bedroom Deep Clean','Leeds'],
- ['toaster-cleaning-before-after.webp','Appliance Detail Clean','Leeds'],
- ['radiator-cleaning-before-after.webp','Radiator Cleaning','Yorkshire'],
- ['end-of-tenancy-room-cleaning-before-after.webp','End of Tenancy Room Clean','Leeds'],
- ['oven-cleaning-leeds-before-after.webp','Oven Deep Cleaning','Leeds'],
- ['sink-cupboard-cleaning-before-after.webp','Sink Cupboard Cleaning','Yorkshire']
+
+/**
+ * Each asset is a single pre-composited before/after photo, so the card carries
+ * one "Before & After" badge and no drag handle — there is no slider to drag.
+ */
+const ITEMS = [
+  ['bedroom-deep-cleaning-leeds-before-after.webp', 'Bedroom Deep Clean', 'Leeds'],
+  ['toaster-cleaning-before-after.webp', 'Appliance Detail Clean', 'Leeds'],
+  ['radiator-cleaning-before-after.webp', 'Radiator Cleaning', 'Yorkshire'],
+  ['end-of-tenancy-room-cleaning-before-after.webp', 'End of Tenancy Room Clean', 'Leeds'],
+  ['oven-cleaning-leeds-before-after.webp', 'Oven Deep Cleaning', 'Leeds'],
+  ['sink-cupboard-cleaning-before-after.webp', 'Sink Cupboard Cleaning', 'Yorkshire'],
 ];
-export default function GalleryGrid(){return <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>{items.map(([img,title,loc])=><article key={img} className='group overflow-hidden rounded-[28px] border border-cyan-400/20 bg-slate-950 shadow-card'><div className='relative h-72 overflow-hidden'><Image src={`/assets/${img}`} alt={`${title} before and after by NVG Cleaning Services`} fill className='object-cover transition duration-700 group-hover:scale-105'/><span className='absolute left-4 top-4 rounded-full bg-black/65 px-4 py-2 text-sm font-black text-white'>Before</span><span className='absolute right-4 top-4 rounded-full bg-nvg px-4 py-2 text-sm font-black text-white'>After</span><span className='absolute left-1/2 top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white'>↔</span></div><div className='p-5'><h3 className='text-xl font-black text-white'>{title}</h3><p className='text-cyan-100/70'>{loc}</p></div></article>)}</div>}
+
+// Cards sit in a 1/2/3-column grid, so never request a full-viewport-width image.
+const GALLERY_SIZES = '(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw';
+
+export default function GalleryGrid() {
+  return (
+    <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {ITEMS.map(([img, title, location]) => (
+        <li key={img}>
+          <article className="group h-full overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-card transition hover:shadow-lift">
+            <div className="relative h-64 overflow-hidden bg-slate-100">
+              <Image
+                src={`/assets/${img}`}
+                alt={`${title} in ${location} — before and after cleaning by NVG Cleaning Services`}
+                fill
+                sizes={GALLERY_SIZES}
+                className="object-cover transition duration-700 group-hover:scale-105"
+              />
+              <span className="absolute left-4 top-4 rounded-full bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
+                Before &amp; After
+              </span>
+            </div>
+            <div className="p-5">
+              <h3 className="text-lg font-extrabold text-ink">{title}</h3>
+              <p className="mt-1 text-sm text-ink-subtle">{location}</p>
+            </div>
+          </article>
+        </li>
+      ))}
+    </ul>
+  );
+}
