@@ -163,13 +163,14 @@ export default function Terms() {
           There is no charge for cancellations made with that notice.
         </li>
         <li>
-          Cancellations with less than 24 hours&rsquo; notice are charged a cancellation fee of{' '}
-          <strong>60% of the booking value</strong>. At that point the slot has been reserved, staff
-          have been scheduled and the time can no longer be resold, so this reflects the loss we
-          incur.
+          Cancellations with less than 24 hours&rsquo; notice are charged a flat cancellation fee of{' '}
+          <strong>£50</strong>. At that point the slot has been reserved, staff have been scheduled
+          and the time can no longer be resold, so this reflects the loss we incur. Where the
+          booking is worth less than £50, the fee is capped at the booking value — we never charge
+          more than the job itself.
         </li>
         <li>
-          Where we are holding funds, we take the 60% fee from the hold and release the rest. Where
+          Where we are holding funds, we take the £50 fee from the hold and release the rest. Where
           payment has already been taken, we refund the balance after deducting the fee.
         </li>
         <li>

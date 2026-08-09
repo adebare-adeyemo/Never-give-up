@@ -223,7 +223,7 @@ export async function POST(req) {
 
     const staffNote = canInvoice
       ? `Invoice ${reference} for ${formatPence(quote.totalPence)} sent — awaiting payment. ` +
-        `Late-cancellation fee would be ${formatPence(cancellationFeePence(quote.totalPence))} (60%).`
+        `Late-cancellation fee would be ${formatPence(cancellationFeePence(quote.totalPence))}.`
       : `Quote required: ${quote.reason} No invoice sent.`;
 
     // Notify the business first: no enquiry is lost even if the customer never

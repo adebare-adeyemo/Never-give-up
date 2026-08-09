@@ -438,7 +438,7 @@ export default function BookingForm() {
             <span>
               I ask {SITE.name} to schedule and begin this work within the 14-day cancellation
               period. I understand that cancelling with less than 24 hours&rsquo; notice incurs a
-              60% cancellation fee of{' '}
+              cancellation fee of{' '}
               <strong>{formatPence(cancellationFeePence(quote.totalPence))}</strong>, as set out in
               the{' '}
               <Link href="/terms" className="font-bold text-nvg-700 underline">
