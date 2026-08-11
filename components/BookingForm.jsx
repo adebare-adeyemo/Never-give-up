@@ -418,7 +418,7 @@ export default function BookingForm() {
           <p className="mt-3 text-sm leading-6 text-ink-muted">
             We will email your invoice with a secure payment link. Prices are starting prices — if
             the property needs more work than described we will agree any change with you first.
-            Card details are handled entirely by Stripe and never reach our servers.
+            Card details are handled entirely by takepayments and never reach our servers.
           </p>
 
           {/*

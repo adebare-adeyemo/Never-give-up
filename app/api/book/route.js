@@ -6,10 +6,10 @@ import {
   sendCustomerAcknowledgement,
   smtpConfigured,
 } from '@/lib/email';
-import { stripeConfigured } from '@/lib/stripe';
+import { takepaymentsConfigured } from '@/lib/takepayments';
 import { bookingReference, createPayToken } from '@/lib/paylink';
 
-// nodemailer and the Stripe SDK both need the Node runtime (not Edge).
+// nodemailer needs the Node runtime (not Edge).
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -36,8 +36,8 @@ const FIELD_LIMITS = {
 const MAX_ADDONS = 20;
 const MAX_ADDON_LENGTH = 80;
 
-// Deliberately conservative: this endpoint sends email and can open a Stripe
-// session, so abuse costs the business its SMTP reputation.
+// Deliberately conservative: this endpoint sends email, so abuse costs the
+// business its SMTP reputation.
 const RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
 /* -------------------------------------------------------------------------- */
@@ -200,10 +200,10 @@ export async function POST(req) {
      * book a five-bedroom deep clean for a penny.
      */
     const quote = calculateQuote(data);
-    const canInvoice = !quote.quoteOnly && quote.totalPence > 0 && stripeConfigured();
+    const canInvoice = !quote.quoteOnly && quote.totalPence > 0 && takepaymentsConfigured();
 
-    if (!quote.quoteOnly && quote.totalPence > 0 && !stripeConfigured()) {
-      console.warn('Booking has a calculable total but STRIPE_SECRET_KEY is not configured.');
+    if (!quote.quoteOnly && quote.totalPence > 0 && !takepaymentsConfigured()) {
+      console.warn('Booking has a calculable total but the payment gateway is not configured.');
     }
 
     /*
@@ -258,15 +258,9 @@ export async function POST(req) {
 
     const payUrl = `${originFrom(req)}/pay/${token}`;
 
-    // Funds are only held (rather than taken) when the clean is close enough
-    // for a card authorisation to still be valid on the day.
-    const leadDays = Math.ceil(
-      (new Date(`${data.date}T00:00:00`).getTime() - Date.now()) / 86400000
-    );
-    const holdsFunds = Number.isFinite(leadDays) && leadDays <= 7;
-
     try {
-      await sendBookingInvoice({ data, quote, reference, payUrl, holdsFunds });
+      // Payment is taken in full when the customer pays, so nothing is held.
+      await sendBookingInvoice({ data, quote, reference, payUrl, holdsFunds: false });
     } catch (invoiceError) {
       console.error('Invoice email failed (booking was received):', invoiceError);
       return jsonError(
@@ -282,7 +276,7 @@ export async function POST(req) {
       totalLabel: formatPence(quote.totalPence),
     });
   } catch (error) {
-    // Log the detail server-side; return nothing that reveals SMTP or Stripe internals.
+    // Log the detail server-side; return nothing that reveals SMTP or gateway internals.
     console.error('Booking form error:', error);
     return jsonError(
       `Your request could not be sent. Please call or WhatsApp us on ${SITE.phoneDisplay}.`,

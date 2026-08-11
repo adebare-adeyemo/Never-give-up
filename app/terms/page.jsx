@@ -95,18 +95,18 @@ export default function Terms() {
           quote&rdquo; are priced by hand and invoiced separately.
         </li>
         <li>
-          <strong>Your money is held, not taken.</strong> Where your clean is close enough for us to
-          do so, paying places a <strong>hold</strong> on your card for the invoice amount. The
-          money is only taken once the work is complete. If the clean does not go ahead, the hold is
-          released and you are charged nothing.
+          <strong>Payment is made in advance.</strong> Your booking is confirmed once payment has
+          been received in full. If the clean does not go ahead, you are refunded in full, less any
+          cancellation fee that applies under section&nbsp;6.
         </li>
         <li>
-          For bookings made further in advance than a card authorisation can be held, payment is
-          taken at the time you pay and refunded under the same rules if the work does not go ahead.
+          Refunds are made to the card you paid with, normally within{' '}
+          <strong>5 working days</strong> of us agreeing them, and in any event within the periods
+          required by section&nbsp;5.
         </li>
         <li>
-          We accept bank transfer and card payment. Card payments are handled by Stripe on their own
-          secure pages; we never see or store your card details.
+          We accept bank transfer and card payment. Card payments are handled by takepayments on
+          their own secure pages; we never see or store your card details.
         </li>
         <li>
           Published prices are <strong>starting prices</strong>. If the property needs more work
