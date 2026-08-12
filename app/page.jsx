@@ -51,11 +51,12 @@ const SERVICES = [
   },
 ];
 
+// Cheapest first, so the entry price is what a visitor reads first.
 const PRICING_PREVIEW = [
   ['Regular Domestic Cleaning', '£20/hour', 'Minimum booking: 2 hours'],
-  ['Deep Cleaning', 'From £120', 'Studio/1 bed starting price'],
   ['Airbnb Cleaning', 'From £55', 'Guest-ready turnover cleaning'],
   ['Pressure Washing', 'From £60', 'Decking, patio and driveway options'],
+  ['Deep Cleaning', 'From £120', 'Studio/1 bed starting price'],
 ];
 
 const WHY_US = [
