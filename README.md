@@ -28,8 +28,24 @@ Runs at http://localhost:3000.
 ## Environment variables
 
 See [`.env.example`](.env.example). Each group is optional and degrades
-cleanly: without the `SMTP_*` values the booking form returns a 503, and
-without `NEXT_PUBLIC_GA_ID` no analytics is loaded at all.
+cleanly: without the `SMTP_*` values the booking form returns a 503, without
+`NEXT_PUBLIC_GA_ID` no analytics is loaded at all, and without the
+`TAKEPAYMENTS_*` values the booking form works as a plain enquiry form.
+
+## Payments
+
+Prices come from [`lib/pricing.js`](lib/pricing.js) and totals are always
+worked out server-side — the browser sends a service name, never an amount.
+
+Booking emails an invoice containing a signed `/pay/<token>` link. Opening it
+posts the customer to the takepayments hosted form, so card details never reach
+this server. The gateway returns the result to `/api/takepayments/callback`,
+which re-computes the hash before trusting it; the redirect alone is never
+treated as proof of payment.
+
+`TAKEPAYMENTS_HASH_METHOD` must match the setting on the gateway account or
+every transaction is rejected. Implementation notes are in
+[`lib/takepayments.js`](lib/takepayments.js).
 
 ## Structure
 
