@@ -418,7 +418,7 @@ export default function BookingForm() {
           <p className="mt-3 text-sm leading-6 text-ink-muted">
             We will email your invoice with a secure payment link. Prices are starting prices — if
             the property needs more work than described we will agree any change with you first.
-            Card details are handled entirely by Stripe and never reach our servers.
+            Card details are handled entirely by takepayments and never reach our servers.
           </p>
 
           {/*
@@ -438,7 +438,7 @@ export default function BookingForm() {
             <span>
               I ask {SITE.name} to schedule and begin this work within the 14-day cancellation
               period. I understand that cancelling with less than 24 hours&rsquo; notice incurs a
-              60% cancellation fee of{' '}
+              cancellation fee of{' '}
               <strong>{formatPence(cancellationFeePence(quote.totalPence))}</strong>, as set out in
               the{' '}
               <Link href="/terms" className="font-bold text-nvg-700 underline">

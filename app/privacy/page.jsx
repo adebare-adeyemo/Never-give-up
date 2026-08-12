@@ -68,8 +68,8 @@ export default function Privacy() {
         </li>
         <li>
           <strong>Payment data</strong> — records of deposits, invoices and payments received. Card
-          payments are processed by Stripe on their own secure pages: we receive confirmation that a
-          payment succeeded and the last four digits, and we do <strong>not</strong> collect,
+          payments are processed by takepayments on their own secure pages: we receive confirmation
+          that a payment succeeded and the last four digits, and we do <strong>not</strong> collect,
           transmit or store full card numbers on this website.
         </li>
         <li>
@@ -183,12 +183,14 @@ export default function Privacy() {
           this website on our instructions.
         </li>
         <li>
-          <strong>Stripe</strong> — our payment processor, who handles card details directly and
-          tells us only whether a payment succeeded. Stripe is a controller in its own right for
-          fraud prevention and may process data outside the UK under approved transfer safeguards.
-          See{' '}
-          <a href="https://stripe.com/gb/privacy" target="_blank" rel="noopener noreferrer">
-            Stripe&rsquo;s privacy policy
+          <strong>takepayments (Payzone UK Limited)</strong> — our payment processor, who handles
+          card details directly and tells us only whether a payment succeeded. See{' '}
+          <a
+            href="https://www.takepayments.com/privacy-policy/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            their privacy policy
           </a>
           .
         </li>
