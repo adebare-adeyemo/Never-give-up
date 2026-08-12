@@ -13,10 +13,6 @@ import { bookingReference, createPayToken } from '@/lib/paylink';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/* -------------------------------------------------------------------------- */
-/* Limits                                                                      */
-/* -------------------------------------------------------------------------- */
-
 const MAX_BODY_BYTES = 16 * 1024;
 const FIELD_LIMITS = {
   name: 120,
@@ -40,17 +36,10 @@ const MAX_ADDON_LENGTH = 80;
 // business its SMTP reputation.
 const RATE_LIMIT = { windowMs: 60 * 60 * 1000, max: 5 };
 
-/* -------------------------------------------------------------------------- */
-/* Rate limiting                                                               */
-/* -------------------------------------------------------------------------- */
-
 /**
- * In-memory fixed-window counter, keyed by client IP.
- *
- * This is per-instance: on a multi-instance/serverless deploy each instance
- * keeps its own window, so it throttles rather than hard-caps. That is a large
- * improvement over no limit at all, but for a strict global limit move this to
- * a shared store (Upstash Redis, Vercel KV).
+ * In-memory fixed-window counter, keyed by client IP. Per-instance, so it
+ * throttles rather than hard-caps across a multi-instance deploy; move to a
+ * shared store for a strict global limit.
  */
 const hits = new Map();
 
@@ -78,10 +67,6 @@ function rateLimited(ip) {
   return entry.count > RATE_LIMIT.max;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Validation helpers                                                          */
-/* -------------------------------------------------------------------------- */
-
 /** Trims, coerces to string and enforces a per-field length cap. */
 function clean(value, limit) {
   if (value === undefined || value === null) return '';
@@ -103,10 +88,6 @@ function jsonError(message, status) {
 function originFrom(req) {
   return process.env.NEXT_PUBLIC_SITE_URL || req.headers.get('origin') || SITE.url;
 }
-
-/* -------------------------------------------------------------------------- */
-/* Handler                                                                     */
-/* -------------------------------------------------------------------------- */
 
 export async function POST(req) {
   try {
@@ -132,8 +113,7 @@ export async function POST(req) {
       return jsonError('We could not read that request. Please try again.', 400);
     }
 
-    // Honeypot — real users never fill a visually hidden field. Return a
-    // success shape so bots cannot distinguish a rejection from a send.
+    // Honeypot. Returns a success shape so bots cannot detect the rejection.
     if (clean(body.company, 100)) {
       return Response.json({ success: true, message: 'Booking request sent.' });
     }
@@ -194,11 +174,7 @@ export async function POST(req) {
       );
     }
 
-    /*
-     * The quote is built server-side from the published price list. The browser
-     * sends a service name and tier, never an amount — otherwise anyone could
-     * book a five-bedroom deep clean for a penny.
-     */
+    // Built server-side: the browser sends a service and tier, never an amount.
     const quote = calculateQuote(data);
     const canInvoice = !quote.quoteOnly && quote.totalPence > 0 && takepaymentsConfigured();
 
@@ -207,10 +183,8 @@ export async function POST(req) {
     }
 
     /*
-     * Consumer Contracts Regulations 2013: taking payment before the 14-day
-     * cancellation period ends requires the customer's express request for
-     * work to begin within it. Without that, a completed job could still be
-     * cancelled for a full refund.
+     * Consumer Contracts Regulations 2013: taking payment inside the 14-day
+     * cancellation period requires the customer's express request to start.
      */
     if (canInvoice && body.startWithinCancellationPeriod !== true) {
       return jsonError(
@@ -226,13 +200,11 @@ export async function POST(req) {
         `Late-cancellation fee would be ${formatPence(cancellationFeePence(quote.totalPence))}.`
       : `Quote required: ${quote.reason} No invoice sent.`;
 
-    // Notify the business first: no enquiry is lost even if the customer never
-    // opens the invoice. Its failure fails the request.
-    await sendBookingNotification(data, { depositNote: staffNote });
+    // Business first, so no enquiry is lost if the customer never pays.
+    await sendBookingNotification(data, { note: staffNote });
 
     if (!canInvoice) {
-      // No published price for this booking, so it is taken as an enquiry and
-      // priced by hand — exactly as it was before payments existed.
+      // No published price, so it is taken as an enquiry and priced by hand.
       try {
         await sendCustomerAcknowledgement(data);
       } catch (ackError) {
@@ -241,11 +213,7 @@ export async function POST(req) {
       return Response.json({ success: true, message: 'Booking request sent.' });
     }
 
-    /*
-     * Signed token rather than a Checkout Session: sessions expire within 24
-     * hours, and the invoice link needs to keep working for as long as the
-     * booking is live. /pay/<token> mints a session when the customer clicks.
-     */
+    // Signed token so the emailed link keeps working for the life of the booking.
     const token = createPayToken({
       reference,
       name: data.name,
@@ -259,8 +227,7 @@ export async function POST(req) {
     const payUrl = `${originFrom(req)}/pay/${token}`;
 
     try {
-      // Payment is taken in full when the customer pays, so nothing is held.
-      await sendBookingInvoice({ data, quote, reference, payUrl, holdsFunds: false });
+      await sendBookingInvoice({ data, quote, reference, payUrl });
     } catch (invoiceError) {
       console.error('Invoice email failed (booking was received):', invoiceError);
       return jsonError(

@@ -69,14 +69,13 @@ export async function POST(req) {
     if (smtpConfigured()) {
       try {
         await sendPaymentNotice({
-          held: false,
           name: received.CustomerName || 'Customer',
           email: received.EmailAddress || '',
           service: received.OrderDescription || 'Cleaning Service',
           reference: result.orderId,
           cleaningDate: '',
           amountPence: result.amountPence,
-          paymentIntentId: result.crossReference,
+          gatewayReference: result.crossReference,
         });
       } catch (error) {
         // The customer has paid — never fail their redirect over an email.
