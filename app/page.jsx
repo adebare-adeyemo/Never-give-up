@@ -51,11 +51,12 @@ const SERVICES = [
   },
 ];
 
+// Cheapest first, so the entry price is what a visitor reads first.
 const PRICING_PREVIEW = [
   ['Regular Domestic Cleaning', '£20/hour', 'Minimum booking: 2 hours'],
-  ['Deep Cleaning', 'From £120', 'Studio/1 bed starting price'],
   ['Airbnb Cleaning', 'From £55', 'Guest-ready turnover cleaning'],
   ['Pressure Washing', 'From £60', 'Decking, patio and driveway options'],
+  ['Deep Cleaning', 'From £120', 'Studio/1 bed starting price'],
 ];
 
 const WHY_US = [
@@ -117,8 +118,34 @@ export default function Home() {
     areaServed: SITE.areas,
     url: SITE.url,
     priceRange: '££',
-    sameAs: [SITE.social.instagram, SITE.social.facebook],
+    sameAs: [SITE.social.instagram, SITE.social.facebook, SITE.social.google].filter(Boolean),
   };
+
+  /*
+   * Trust bar.
+   *
+   * Counts come from SITE.stats and appear only when a real figure has been
+   * entered. Whatever is missing is made up by claims that are true by
+   * construction — insurance, vetting, free quotes — rather than by a round
+   * number that cannot be evidenced if the ASA asks.
+   */
+  const { stats } = SITE;
+  const trustSignals = [
+    {
+      icon: BadgeCheck,
+      value: `${stats.googleRating}★`,
+      label: stats.googleReviews ? `From ${stats.googleReviews} Google reviews` : 'Google rating',
+      href: SITE.social.google || undefined,
+    },
+    stats.jobs && { icon: HomeIcon, value: stats.jobs, label: 'Cleans completed' },
+    stats.clients && { icon: Star, value: stats.clients, label: 'Regular clients' },
+    stats.since && { icon: CalendarCheck, value: stats.since, label: 'Cleaning since' },
+    { icon: ShieldCheck, value: 'Insured', label: 'Public liability cover' },
+    { icon: ClipboardCheck, value: 'Vetted', label: 'Right-to-work checked' },
+    { icon: ThumbsUp, value: 'Free', label: 'No-obligation quotes' },
+  ]
+    .filter(Boolean)
+    .slice(0, 4);
 
   return (
     <>
@@ -180,16 +207,22 @@ export default function Home() {
       {/* ---------- Trust bar ---------- */}
       <section aria-label="At a glance" className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-[1180px] grid-cols-2 gap-px overflow-hidden px-5 py-10 md:grid-cols-4">
-          {[
-            [Star, '100+', 'Happy Clients'],
-            [HomeIcon, '200+', 'Jobs Completed'],
-            [BadgeCheck, '5.0★', 'Google Rating'],
-            [ShieldCheck, 'Insured', 'Vetted Cleaners'],
-          ].map(([Icon, value, label]) => (
+          {trustSignals.map(({ icon: Icon, value, label, href }) => (
             <div key={label} className="px-3 text-center">
               <Icon className="mx-auto mb-2 text-nvg-700" aria-hidden="true" />
               <p className="text-2xl font-extrabold text-ink sm:text-3xl">{value}</p>
-              <p className="text-sm font-semibold text-ink-subtle">{label}</p>
+              {href ? (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-nvg-700 underline underline-offset-2"
+                >
+                  {label}
+                </a>
+              ) : (
+                <p className="text-sm font-semibold text-ink-subtle">{label}</p>
+              )}
             </div>
           ))}
         </div>
@@ -316,10 +349,21 @@ export default function Home() {
             </div>
             <div className="card p-5">
               <p className="text-lg font-extrabold text-ink">
-                Google Reviews <span className="text-star">5.0 ★★★★★</span>
+                Google Reviews <span className="text-star">{SITE.stats.googleRating} ★★★★★</span>
               </p>
               <p className="mt-1 text-sm text-ink-subtle">
-                Based on recent Google customer feedback.
+                {SITE.social.google ? (
+                  <a
+                    href={SITE.social.google}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-nvg-700 underline underline-offset-2"
+                  >
+                    Read our reviews on Google
+                  </a>
+                ) : (
+                  'Based on recent Google customer feedback.'
+                )}
               </p>
             </div>
           </Reveal>

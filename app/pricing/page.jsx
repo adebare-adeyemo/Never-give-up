@@ -9,16 +9,17 @@ export const metadata = {
   alternates: { canonical: '/pricing' },
 };
 
+// Every list below runs cheapest first, with custom-quote items last.
 const DOMESTIC = [
-  [
-    'Regular Domestic Cleaning',
-    '£20/hour',
-    'Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.',
-  ],
   [
     'Ironing Service',
     'From £15/hour',
     'Can be added to regular domestic cleaning or booked separately.',
+  ],
+  [
+    'Regular Domestic Cleaning',
+    '£20/hour',
+    'Minimum booking: 2 hours. Perfect for weekly, bi-weekly or monthly maintenance cleaning.',
   ],
 ];
 
@@ -38,16 +39,16 @@ const AIRBNB = [
 ];
 
 const PRESSURE = [
-  ['Driveway Cleaning', 'From £80'],
-  ['Patio Cleaning', 'From £70'],
   ['Decking Cleaning', 'From £60'],
+  ['Patio Cleaning', 'From £70'],
+  ['Driveway Cleaning', 'From £80'],
   ['Commercial Exterior', 'Custom Quote'],
 ];
 
 const ADDONS = [
+  ['Ironing Service', 'From £15/hour'],
   ['Inside Fridge', '£20'],
   ['Inside Oven', '£35'],
-  ['Ironing Service', 'From £15/hour'],
 ];
 
 const EXTRAS = [
@@ -104,11 +105,6 @@ export default function Pricing() {
               <Row key={name} name={name} price={price} note={note} />
             ))}
           </PriceCard>
-          <PriceCard title="Deep Cleaning">
-            {DEEP.map(([name, price]) => (
-              <Row key={name} name={name} price={price} />
-            ))}
-          </PriceCard>
           <PriceCard title="Airbnb Cleaning">
             {AIRBNB.map(([name, price]) => (
               <Row key={name} name={name} price={price} />
@@ -116,6 +112,11 @@ export default function Pricing() {
           </PriceCard>
           <PriceCard title="Pressure Washing">
             {PRESSURE.map(([name, price]) => (
+              <Row key={name} name={name} price={price} />
+            ))}
+          </PriceCard>
+          <PriceCard title="Deep Cleaning">
+            {DEEP.map(([name, price]) => (
               <Row key={name} name={name} price={price} />
             ))}
           </PriceCard>
